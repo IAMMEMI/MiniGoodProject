@@ -1,0 +1,9 @@
+app:
+    resource: "@AppBundle/Controller/"
+    type:     annotation
+    prefix: /
+
+goods:
+   type: rest
+   resource: AppBundle\Controller\GoodsController
+   host: localhost
