@@ -1,4 +1,3 @@
-mini_project
+mini_project 1.0
 ============
-
-A Symfony project created on January 5, 2017, 12:02 pm.
+Mini-project sui good aggiornato con i nuovi task. Aspettiamo le API per il client
