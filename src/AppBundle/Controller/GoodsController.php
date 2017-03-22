@@ -30,33 +30,60 @@ class GoodsController extends Controller
     
     
     public function getGoodsAction(Request $request) {
-        //order = true/false; field=qualcosa che esiste; 
-        //search = true; field=qualcosa; value=qualcosa;
-        
-        //importo tutti i products dal db
-        $goodRepository = $this->getDoctrine()
-                ->getRepository('AppBundle:Good');
-            $goods = $goodRepository ->findAll();
-        
-        $parameters = $request ->query;
        
         
-        if($parameters ->get("order")){
-            $field = $parameters ->get("field");
+        $parameters = $request ->query;
+        $em = $this -> getDoctrine() -> getManager();
+        $properFields = array('id', 'description', 'quantity', 'price');
+        
+       
+        
+        $field = $parameters ->get("field");
+        $value = $parameters -> get("value");
+        if($field != "") {
             
-                if(count($goods)>20) {
-                try{
-                $query = $goodRepository->createQueryBuilder('p')
-                ->orderBy('p.'.$field, 'ASC')
-                ->getQuery();
-                $goods = $query->getResult();
-                } 
-                catch(\Doctrine\ORM\Query\QueryException $ex){
-                    throw new HttpException(400, "Incorrect field value");
-                }
+          //Effettuo un loop per verificare
+          //che il campo nella queryString sia valido
+          $i;
+          $valid = false;
+          for($i = 0; $i < 4  || $valid; $i++) {
+              $valid = $field == $properFields[$i]; 
+          }
+          if(!$valid)
+              throw new HttpException(400, "The field specified doesn't exist");
+          
+          //Se non c'è un campo valore, allora restituiamo i goods ordinati
+          if($value == "") {
+            
+            //Facciamo una query per contare il numero di good da ordinare
+            $query = $em -> createQuery(
+                    'SELECT COUNT(*) g'
+                    . 'FROM AppBundle:Good g'
+                    . 'WHERE g.field = :field');
+            $query -> setParameter('field', $field);
+            $count = $query -> getResult();
 
+            if($count>20) {
+                //Come da specifica, verifichiamo se i goods sono maggiori di 20
+                try{
+                   //Faccio una query per restituire i goods ordinati 
+                   //secondo il field
+                   $query = $em ->getRepository('AppBundle:Good') -> createQueryBuilder('p')
+                   ->orderBy('p.'.$field, 'ASC')
+                   ->getQuery();
+                   $goods = $query->getResult();
+                } catch(\Doctrine\ORM\Query\QueryException $ex) {
+                    //Un eccezione di questo tipo non si dovrebbe verificare,
+                    //comunque in ogni caso sarebbe un internal server error
+                    throw new HttpException(500, "Fatal Exception");
                 }
+           }
+        } else {
+            
+            //Controllo di validità su value e restituisco il risultato della ricerca
         }
+        }
+            
         
         if($parameters ->get("search")){
            $field = $parameters ->get("field");
