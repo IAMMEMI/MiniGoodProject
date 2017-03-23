@@ -119,7 +119,7 @@ class GoodsController extends Controller {
      */
     private function validateId($value) {
         
-        if (is_int($value)) {
+        if (is_numeric($value)) {
             if (strlen((string) $value) > 11)
                 throw new HttpException(400, "Max 11 digits for the id!");
         } else
@@ -133,7 +133,7 @@ class GoodsController extends Controller {
      * @throws HttpException
      */
     private function validateQuantity($value) {
-        if (is_int($value)) {
+        if (is_int($value+0)) {
             if (strlen((string) $value) > 11)
                 throw new HttpException(400, "Max 11 digits for the quantity!");
         } else
@@ -148,7 +148,7 @@ class GoodsController extends Controller {
      * @throws HttpException
      */
     private function validatePrice($value) {
-        if (!is_double($value))
+        if (!is_numeric($value))
             throw new HttpException(400, "Price value must be double");
         return true;
     }
@@ -208,7 +208,7 @@ class GoodsController extends Controller {
             //Ritorno tutti i goods, in quanto non c'è una querystring che 
             //specifichi l'ordinamento o la ricerca
             $goods = $em->getRepository('AppBundle:Good')->findAll();
-            return $this -> createResponse($goods);
+            return $this -> createResponse($request, $goods);
         }
 
 
