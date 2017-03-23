@@ -19,6 +19,16 @@ class GoodsController extends Controller
     
     private $serializer;
     
+    private function createResponse($goods) {
+        
+        $json = $this -> serializer -> serialize($goods, 'json');
+        $response = new Response($json, Response::HTTP_OK, array('content-type' => 'application/json'));
+        $response -> prepare ($request);
+        $response -> headers -> set('Access-Control-Allow-Origin', '*');
+        return $response;  
+        
+    }
+    
     
     public function __construct() {
         $encoder = array(new JsonEncoder());
@@ -72,16 +82,31 @@ class GoodsController extends Controller
                    ->orderBy('p.'.$field, 'ASC')
                    ->getQuery();
                    $goods = $query->getResult();
+                   return createResponse($goods);
+                   
                 } catch(\Doctrine\ORM\Query\QueryException $ex) {
                     //Un eccezione di questo tipo non si dovrebbe verificare,
                     //comunque in ogni caso sarebbe un internal server error
                     throw new HttpException(500, "Fatal Exception");
                 }
+           } else {
+               
+               if($count==0){
+                    throw new HttpException(404, "No good found");
+                }
+                $goods =  $em ->getRepository('AppBundle:Good') -> findAll();
+                return createResponse($goods);
+                    
            }
         } else {
-            
-            //Controllo di validità su value e restituisco il risultato della ricerca
+            //Controllo di validità su value e
+            // restituisco il risultato della ricerca
         }
+        } else {
+            //Ritorno tutti i goods, in quanto non c'è una querystring che 
+            //specifichi l'ordinamento o la ricerca
+            $goods =  $em ->getRepository('AppBundle:Good') -> findAll();
+            return createResponse($goods);
         }
             
         
@@ -103,9 +128,11 @@ class GoodsController extends Controller
            
            
         }
-            if(count($goods)==0){
+         
+            if($count==0){
                 throw new HttpException(404, "No good found");
-            }     
+            }
+            $goods =  $em ->getRepository('AppBundle:Good') -> findAll();
             $json = $this -> serializer -> serialize($goods, 'json');
             $response = new Response($json, Response::HTTP_OK, array('content-type' => 'application/json'));
             $response -> prepare ($request);
