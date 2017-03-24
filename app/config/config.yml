@@ -65,12 +65,12 @@ doctrine:
 nelmio_cors:
     defaults:
         allow_origin: ['*']
-        allow_methods: [] 
+	allow_headers: ['*']
     paths:
         '^/goods':
-            allow_methods: ['GET', 'POST']
+            allow_methods: ['GET', 'POST', 'OPTIONS']
         '^/goods/id':
-            allow_methods: ['GET', 'PUT', 'DELETE']
+            allow_methods: ['GET', 'PUT', 'DELETE', 'OPTIONS']
            
 
 
