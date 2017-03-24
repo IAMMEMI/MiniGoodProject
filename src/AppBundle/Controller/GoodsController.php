@@ -29,7 +29,6 @@ class GoodsController extends Controller {
         $json = $this->serializer->serialize($goods, 'json');
         $response = new Response($json, Response::HTTP_OK, array('content-type' => 'application/json'));
         $response->prepare($request);
-        $response->headers->set('Access-Control-Allow-Origin', '*');
         return $response;
     }
 
