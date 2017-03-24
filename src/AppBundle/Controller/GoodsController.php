@@ -209,13 +209,6 @@ class GoodsController extends Controller {
             $goods = $em->getRepository('AppBundle:Good')->findAll();
             return $this -> createResponse($request, $goods);
         }
-
-
-
-        /* $query = $goodRepository ->createQueryBuilder('p')
-          ->where('p.'.$field.'='.$value)
-          ->getQuery();
-          $goods = $query->getResult(); */
     }
 
 // "get_goods"  [GET] /goods

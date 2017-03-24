@@ -65,8 +65,14 @@ doctrine:
 nelmio_cors:
     defaults:
         allow_origin: ['*']
+        allow_methods: [] 
     paths:
-        '^/': 
+        '^/goods':
+            allow_methods: ['GET', 'POST']
+        '^/goods/id':
+            allow_methods: ['GET', 'PUT', 'DELETE']
+           
+
 
 # Swiftmailer Configuration
 swiftmailer:
