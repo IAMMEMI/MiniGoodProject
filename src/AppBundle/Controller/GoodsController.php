@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Class GoodsController ........
+ * Class GoodsController handles all CRUD operations with good object.
  */
 class GoodsController extends Controller {
 
