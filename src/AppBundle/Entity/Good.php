@@ -26,9 +26,14 @@ class Good
 
     /**
      * @var string
-     *
-     * @Assert\NotNull()
-     * @Assert\NotBlank()
+     * @Assert\Type(
+     *  type="string",
+     *  message="the description must be a string"
+     * )
+     * @Assert\Length(
+     *  max=25,
+     *  maxMessage="Maximum length for a description is 25 chars"
+     * )
      * @ORM\Column(name="description", type="string", length=25)
      */
     private $description;
@@ -36,12 +41,12 @@ class Good
     /**
      * @var int
      * @Assert\NotNull()
+     * @Assert\Type(
+     *  type="integer",
+     *  message="quantity must be an integer")
      * @Assert\Range(
-     * 
-     *    min = 1,
-     *    minMessage = "At least one good"
-     * 
-     * )
+     *  min = 1,
+     *  minMessage = "At least one good")
      * @ORM\Column(name="quantity", type="integer")
      * 
      */
@@ -49,6 +54,10 @@ class Good
 
     /**
      * @var float
+     * @Assert\Type(
+     *  type="float",
+     *  message="price must be a float"
+     * )
      * @Assert\NotNull()
      * @Assert\Range(
      *    min = 0.01,

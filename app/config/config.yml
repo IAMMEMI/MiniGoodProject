@@ -65,7 +65,7 @@ doctrine:
 nelmio_cors:
     defaults:
         allow_origin: ['*']
-	allow_headers: ['*']
+        allow_headers: ['*']
     paths:
         '^/goods':
             allow_methods: ['GET', 'POST', 'OPTIONS']

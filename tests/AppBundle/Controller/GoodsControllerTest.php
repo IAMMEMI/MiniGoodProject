@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class GoodsControllerTest extends WebTestCase
 {
+    
     public function testContentType()
     {
         $client = static::createClient();
@@ -38,32 +39,58 @@ class GoodsControllerTest extends WebTestCase
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
     }
     
-    public function testDeleteGood() 
-    {
-        $client = static::createClient();
-        $crawler = $client -> request('DELETE', '/goods/3');
-        echo $client ->getResponse() ->getContent();
-        $this->assertEquals(200, $client->getResponse()->getStatusCode());
-    } 
-    
-    public function testInsertGood()
+     public function testInsertGood()
     {
         $client = static::createClient();
         $crawler = $client -> request('POST','/goods',array(), array(), array("CONTENT_TYPE" => "application/json"),
-	'{"description":"prova", "quantity": 45, "price": 2.6}');
+	'{"description":"prova", "quantity": 40, "price": 2.6}');
         $response = $client -> getResponse();
         echo $response -> getContent();
         $this->assertEquals(200, $response ->getStatusCode());
     }
     
+    public function testDeleteGood() 
+    {
+        //This test is valid only once
+        $client = static::createClient();
+        $crawler = $client -> request('DELETE', '/goods/42');
+        echo $client ->getResponse() ->getContent();
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+    } 
+    
+   
+    
+    public function testBadInsertGood()
+    {
+        $client = static::createClient();
+        $crawler = $client -> request('POST','/goods',array(), array(), array("CONTENT_TYPE" => "application/json"),
+	'{"description":"this description is much longer than 25 characters,'
+                . ' yes i know, really really bad", "quantity": 45.5, "price": 2.6}');
+        $response = $client -> getResponse();
+        echo $response -> getContent();
+        $this->assertEquals(400, $response ->getStatusCode());
+    }
+    
     public function testPatchGood() 
     {
         $client = static::createClient();
-        $crawler = $client -> request('PATCH','/goods/1',array(), array(), array("CONTENT_TYPE" => "application/json"),
-	'{"description":"modificato", "quantity": 45, "price": 2.6}');
+        $crawler = $client -> request('PATCH','/goods/1',
+                array(), array(), array("CONTENT_TYPE" => "application/json"),
+	'{"description":"modificato2", "quantity": 45, "price": 2.6}');
         $response = $client -> getResponse();
         echo $response -> getContent();
         $this->assertEquals(200, $response ->getStatusCode());
+    }
+    
+    public function testBadPatchGood() 
+    {
+        $client = static::createClient();
+        $crawler = $client -> request('PATCH','/goods/1',
+                array(), array(), array("CONTENT_TYPE" => "application/json"),
+	'{"description":"modificato2", "quantity": 45.8, "price": 2.6}');
+        $response = $client -> getResponse();
+        echo $response -> getContent();
+        $this->assertEquals(400, $response ->getStatusCode());
     }
     
     

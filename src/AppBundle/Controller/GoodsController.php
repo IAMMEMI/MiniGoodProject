@@ -117,19 +117,24 @@ class GoodsController extends Controller {
 
     /**
      * This method validates the id field value used in searching
-     * @param type $value as the id value
+     * @param integer $value as the id value 
      * @return boolean true if there isn't any problem with the input value
      * @throws HttpException
      */
     private function validateId($value) {
         
-        if (is_numeric($value) && $value >=0) {
-            if (strlen((string) $value) > 11) {
-                throw new HttpException(400, "For the id the maximum digits is 11.");
+        if(!is_null($value)) {
+            if (is_numeric($value) && $value >=0) {
+                if (strlen((string) $value) > 11) {
+                    throw new HttpException(400, 
+                            "11 is the maximum number of digits for the id");
+                }
+            } else {
+                throw new HttpException(400, 
+                        "Id value must be a positive integer");
             }
-        } else {
-            throw new HttpException(400, "Id value must be a positive integer");
         }
+        return true;
     }
 
     /**
@@ -175,8 +180,6 @@ class GoodsController extends Controller {
      * If the number of the goods is more than 20 and we have a field then we have to sort the array before we send it to the client.
      * Otherwise if goods are less than 20, we have to send it as they are.
      * 
-     * @QueryParam(name="field", default=null, nullable=true)
-     * @QueryParam(name="value", default=null, nullable=true)
      * @param Request $request
      * @return Response 
      * @throws HttpException
@@ -279,29 +282,28 @@ class GoodsController extends Controller {
             throw new HttpException(400, "Error parsing json object: ". $ex->getMessage());
         }
 
+        //Here we're validating the new object, using assertions
+        //from the annotations of Good entity
         $validator = $this->get("validator");
-        $errors = $validator->validate($newGood);
-
+        $errors = $validator->validate($newGood);        
         if (count($errors) > 0) {
-
-            return new HttpException(400, "Error validatin Json object: " . (string) $errors);
+            throw new HttpException(400, "Error validatin Json object: " 
+                    . (string) $errors);
+        }
+        //This control is for the id, because it is auto-generated and can't
+        //be specified by the client
+        if($newGood -> getId() != null) {
+            throw new HttpException(400, "Error validating Json object: "
+                    ."id field is auto-generated!");
         }
 
         $em = $this->getDoctrine()->getManager();
-        $id = $newGood->getId(); 
-        $description = $newGood->getDescription();
-        $quantity = $newGood->getQuantity();
-        $price = $newGood->getPrice();
-        if(validateId($id) && validateDescription($description) && validateQuantity($quantity) && validatePrice($price)){
-            $em->persist($newGood);
-            $em->flush();
-            $response = new Response("Saved new good with id " . $newGood->getId());
-            $response->headers->set('Access-Control-Allow-Origin', '*');
-            $response->prepare($request);
-            return $response;
-        } else {
-            throw new HttpException(400, "Values of good unexpected");
-        }
+        $em->persist($newGood);
+        $em->flush();
+        $response = new Response("Saved new good with id " . $newGood->getId());
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->prepare($request);
+        return $response;
     }
 
 // "insert_good" [POST] /goods
@@ -314,6 +316,7 @@ class GoodsController extends Controller {
      * @throws HttpException
      */
     public function patchGoodsAction(Request $request, $id) {
+        
         $jsonGood = $request->getContent();
         try {
             $newGood = $this->serializer->deserialize(
@@ -322,30 +325,25 @@ class GoodsController extends Controller {
         $ex) {
             throw new HttpException(400, "Error parsing json object");
         }
-        //controllo se l'id è ok
-        $this->validateId($id);
-        
+        //Here we're validating the new object, using assertions
+        //from the annotations of Good entity
+        $validator = $this->get("validator");
+        $errors = $validator->validate($newGood);        
+        if (count($errors) > 0) {
+            throw new HttpException(400, "Error validatin Json object: " 
+                    . (string) $errors);
+        }
+       
         $em = $this->getDoctrine()->getManager();
         $oldGood = $em->getRepository('AppBundle:Good')->find($id);
         if (!$oldGood) {
             throw new HttpException(404, "No good found for id" . $id);
         }
-        $newDescription = $newGood->getDescription();
-        if ($this->validateDescription($newDescription)) {
-            $oldGood->setDescription($newDescription);
-        }
-        $newQuantity = $newGood->getQuantity();
-        if ($this->validateQuantity($newQuantity)) {
-            $oldGood->setQuantity($newQuantity);
-        }
-        $newPrice = $newGood->getPrice();
-        if ($this->validatePrice($newPrice)) {
-            $oldGood->setPrice($newPrice);
-        }
+        $oldGood->setDescription($newGood -> getDescription());
+        $oldGood->setQuantity($newGood -> getQuantity());
+        $oldGood->setPrice($newGood -> getPrice());
         $em->flush();
-
         $response = new Response("Updated good with id " . $id);
-        $response->headers->set('Access-Control-Allow-Origin', '*');
         $response->prepare($request);
         return $response;
     }
@@ -369,9 +367,7 @@ class GoodsController extends Controller {
         }
         $em->remove($good);
         $em->flush();
-
         $response = new Response("Deleted good with id " . $id);
-        $response->headers->set('Access-Control-Allow-Origin', '*');
         $response->prepare($request);
         return $response;
     }
