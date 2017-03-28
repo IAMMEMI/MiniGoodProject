@@ -9,6 +9,10 @@ use Symfony\Component\HttpFoundation\Response;
 class GoodsControllerTest extends WebTestCase
 {
     
+    /**
+     * This test tests the content type of the data sent back by the server:
+     * it must be application/json
+     */
     public function testContentType()
     {
         $client = static::createClient();
@@ -22,6 +26,10 @@ class GoodsControllerTest extends WebTestCase
         'non è "application/json"');
     }
 
+    /**
+     * This test assert that a request 'GET' on the root /goods 
+     * actually sent a proper response with a 200 status code
+     */
     public function testGetGoods()
     {
         $client = static::createClient();
@@ -32,6 +40,10 @@ class GoodsControllerTest extends WebTestCase
         
     }
     
+    /**
+     * This test assert that a request 'GET' on a single good specyifing 
+     * the id actually sends back a response with a 200 status code
+     */
     public function testGetGood()
     {   
         $client = static::createClient();
@@ -39,6 +51,9 @@ class GoodsControllerTest extends WebTestCase
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
     }
     
+    /**
+     * This test tests that an insert is answered with a 200 status code
+     */
      public function testInsertGood()
     {
         $client = static::createClient();
@@ -49,17 +64,23 @@ class GoodsControllerTest extends WebTestCase
         $this->assertEquals(200, $response ->getStatusCode());
     }
     
+    /**
+     * This test test the deletion of a good
+     */
     public function testDeleteGood() 
     {
         //This test is valid only once
         $client = static::createClient();
-        $crawler = $client -> request('DELETE', '/goods/42');
+        $crawler = $client -> request('DELETE', '/goods/2');
         echo $client ->getResponse() ->getContent();
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
     } 
     
    
-    
+    /**
+     * This test tests that the validation actually works, sending a wrong json
+     * object
+     */
     public function testBadInsertGood()
     {
         $client = static::createClient();
@@ -71,6 +92,9 @@ class GoodsControllerTest extends WebTestCase
         $this->assertEquals(400, $response ->getStatusCode());
     }
     
+    /**
+     * This test test the "PATCH" request
+     */
     public function testPatchGood() 
     {
         $client = static::createClient();
@@ -82,6 +106,10 @@ class GoodsControllerTest extends WebTestCase
         $this->assertEquals(200, $response ->getStatusCode());
     }
     
+    /**
+     * This test test the validation of the object also for the "PATCH"
+     * request
+     */
     public function testBadPatchGood() 
     {
         $client = static::createClient();

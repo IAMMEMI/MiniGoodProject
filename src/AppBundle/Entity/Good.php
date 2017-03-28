@@ -6,14 +6,17 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Product
+ * This class represents a good, it is mapped to the table "goods"
+ * using Doctrine
  *
- * @ORM\Table(name="products")
- * @ORM\Entity(repositoryClass="AppBundle\Repository\ProductRepository")
+ * @ORM\Table(name="goods")
+ * @ORM\Entity(repositoryClass="AppBundle\Repository\GoodRepository")
  */
 class Good
 {
     /**
+     * It's the identificator of the good within the database, it's
+     * auto-generated when inserted.
      * @var int
      *
      * @ORM\Column(name="id", type="integer")
@@ -25,6 +28,7 @@ class Good
     private $id;
 
     /**
+     * It's a short description of the good
      * @var string
      * @Assert\Type(
      *  type="string",
@@ -39,6 +43,7 @@ class Good
     private $description;
 
     /**
+     * It's the available quantity of the good
      * @var int
      * @Assert\NotNull()
      * @Assert\Type(
@@ -53,6 +58,7 @@ class Good
     private $quantity;
 
     /**
+     * It's the unitary price of the good.
      * @var float
      * @Assert\Type(
      *  type="float",
@@ -71,8 +77,8 @@ class Good
     /**
      * Get id
      *
-     * @return int
-     */
+     * @return int id
+     *  */
     public function getId()
     {
         return $this->id;
@@ -83,19 +89,17 @@ class Good
      *
      * @param string $description
      *
-     * @return Good
      */
     public function setDescription($description)
     {
         $this->description = $description;
-
         return $this;
     }
 
     /**
      * Get description
      *
-     * @return string
+     * @return string description
      */
     public function getDescription()
     {
@@ -107,7 +111,7 @@ class Good
      *
      * @param integer $quantity
      *
-     * @return Good
+     * @return Good instance as the object itself
      */
     public function setQuantity($quantity)
     {
@@ -119,7 +123,7 @@ class Good
     /**
      * Get quantity
      *
-     * @return int
+     * @return int quantity
      */
     public function getQuantity()
     {
@@ -131,7 +135,7 @@ class Good
      *
      * @param float $price
      *
-     * @return Good
+     * @return Good instance as the object itself
      */
     public function setPrice($price)
     {
@@ -143,7 +147,7 @@ class Good
     /**
      * Get price
      *
-     * @return float
+     * @return float price
      */
     public function getPrice()
     {
