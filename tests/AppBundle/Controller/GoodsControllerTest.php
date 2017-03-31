@@ -57,11 +57,18 @@ class GoodsControllerTest extends WebTestCase
      public function testInsertGood()
     {
         $client = static::createClient();
-        $crawler = $client -> request('POST','/goods',array(), array(), array("CONTENT_TYPE" => "application/json"),
-	'{"description":"prova", "quantity": 40, "price": 2.6}');
+        $client->request('GET','/goods?count=true');
+        $count = $client->getResponse()->getContent();
+        $client -> request('POST','/goods',array(), array(), array("CONTENT_TYPE" => "application/json"),
+	'{"description":"prova3", "quantity": 40, "price": 2.6}');
         $response = $client -> getResponse();
-        echo $response -> getContent();
+       
         $this->assertEquals(200, $response ->getStatusCode());
+        
+        $client->request('GET','/goods?count=true');
+        $count2 = $client->getResponse()->getContent();
+        
+        $this->assertTrue($count==$count2, "Inserimento andato a buon fine");
     }
     
     /**
@@ -71,9 +78,12 @@ class GoodsControllerTest extends WebTestCase
     {
         //This test is valid only once
         $client = static::createClient();
-        $crawler = $client -> request('DELETE', '/goods/2');
-        echo $client ->getResponse() ->getContent();
+        $client -> request('DELETE', '/goods/14');
+        
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        $client->request('GET', '/goods/14');
+        
+        $this->assertFalse($client->getResponse()->getStatusCode() == 404, "Eliminazione perfetta");
     } 
     
    
@@ -84,12 +94,19 @@ class GoodsControllerTest extends WebTestCase
     public function testBadInsertGood()
     {
         $client = static::createClient();
+        $client->request('GET','/goods?count=true');
+        $count = $client->getResponse()->getContent();
         $crawler = $client -> request('POST','/goods',array(), array(), array("CONTENT_TYPE" => "application/json"),
 	'{"description":"this description is much longer than 25 characters,'
                 . ' yes i know, really really bad", "quantity": 45.5, "price": 2.6}');
         $response = $client -> getResponse();
         echo $response -> getContent();
         $this->assertEquals(400, $response ->getStatusCode());
+        
+        $client->request('GET','/goods?count=true');
+        $count2 = $client->getResponse()->getContent();
+        
+        $this->assertFalse($count==$count2, "Inserimento non andato a buon fine, tutto ok");
     }
     
     /**
