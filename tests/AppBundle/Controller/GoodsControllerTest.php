@@ -196,10 +196,9 @@ class GoodsControllerTest extends WebTestCase
         //prendo l'oggetto da modificare
         $client->request('GET','/goods/1');
         $response1=$client->getResponse()->getContent();
-        
         $client -> request('PATCH','/goods/1',
                 array(), array(), array("CONTENT_TYPE" => "application/json"),
-	'{"description":"modificato3", "quantity": 45, "price": 2.6}');
+	'{"description":"modificato", "quantity": 45, "price": 2.6}');
         $response = $client -> getResponse();
         
         $this->assertEquals(200, $response ->getStatusCode());
@@ -209,7 +208,7 @@ class GoodsControllerTest extends WebTestCase
         $client->request('GET','/goods/1');
         $response2=$client->getResponse()->getContent();
         
-        $this->assertTrue($response!=$response2, "Error! Good not modified!");
+        $this->assertTrue($response1!=$response2, "Error! Good not modified!");
     }
     
     /**
