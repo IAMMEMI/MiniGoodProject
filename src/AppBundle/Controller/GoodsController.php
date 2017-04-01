@@ -195,6 +195,7 @@ class GoodsController extends Controller {
                 ->getColumnNames();
         $field = $parameters->get("field");
         $value = $parameters->get("value");
+        $count = $parameters->get("count");
         if (!is_null($field)) {
             //Se viene specificato un campo, allora restituiamo i goods ordinati
             //Verifico che il campo nella queryString sia valido
@@ -226,6 +227,10 @@ class GoodsController extends Controller {
                 $goods = $this->searchForGoods($em, $field, $value);
                 return $this->createResponse($request, $goods);
             }
+        } 
+        elseif($count){
+            $num = $this->countGoods();
+            return $this->createResponse($request, $num);
         } else {
             //Ritorno tutti i goods, in quanto non c'è una querystring che 
             //specifichi l'ordinamento o la ricerca
@@ -234,7 +239,16 @@ class GoodsController extends Controller {
         }
     }
 
-// "get_goods"  [GET] /goods
+    // "get_goods"  [GET] /goods
+    
+    public function countGoods(){
+        $em = $this->getDoctrine()->getManager();
+         $query = $em->createQuery(
+                'SELECT COUNT(g.id) '
+                . 'FROM AppBundle:Good g');
+        return $query->getResult();
+    }
+   
 
     /**
      * This method searches the good id and then sends it back.
@@ -264,6 +278,8 @@ class GoodsController extends Controller {
     }
 
 // "get_goods" [GET] /goods/{id} will be the root
+    
+    
 
     /**
      * This method handles the creation of a good object.

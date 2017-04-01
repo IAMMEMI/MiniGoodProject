@@ -153,4 +153,6 @@ class Good
     {
         return $this->price;
     }
+    
+    
 }
