@@ -2,15 +2,11 @@
 
 namespace AppBundle\Controller;
 
-use FOS\RestBundle\Controller\Annotations\View;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use FOS\RestBundle\Controller\Annotations\QueryParam;
-use FOS\RestBundle\Controller\Annotations\RouteResource;
-use FOS\RestBundle\Controller\FOSRestController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -228,10 +224,7 @@ class GoodsController extends Controller {
                 return $this->createResponse($request, $goods);
             }
         } 
-        elseif($count){
-            $num = $this->countGoods();
-            return $this->createResponse($request, $num);
-        } else {
+        else {
             //Ritorno tutti i goods, in quanto non c'è una querystring che 
             //specifichi l'ordinamento o la ricerca
             $goods = $em->getRepository('AppBundle:Good')->findAll();
@@ -240,14 +233,6 @@ class GoodsController extends Controller {
     }
 
     // "get_goods"  [GET] /goods
-    
-    public function countGoods(){
-        $em = $this->getDoctrine()->getManager();
-         $query = $em->createQuery(
-                'SELECT COUNT(g.id) '
-                . 'FROM AppBundle:Good g');
-        return $query->getResult();
-    }
    
 
     /**
