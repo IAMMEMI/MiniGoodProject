@@ -71,7 +71,7 @@ class GoodsControllerTest extends WebTestCase
         $client->request('GET','/goods?count=true');
         $count2 = $client->getResponse()->getContent();
         
-        $this->assertTrue($count==$count2, "Inserimento andato a buon fine");
+        $this->assertFalse($count==$count2, "Inserimento andato a buon fine");
     }
     
     /**
@@ -81,12 +81,12 @@ class GoodsControllerTest extends WebTestCase
     {
         //This test is valid only once
         $client = static::createClient();
-        $client -> request('DELETE', '/goods/14');
+        $client -> request('DELETE', '/goods/6');
         
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
         
         //se l'eliminazione è avvenuta con successo, allora avrò 404 not found
-        $client->request('GET', '/goods/14');
+        $client->request('GET', '/goods/6');
         
         $this->assertFalse($client->getResponse()->getStatusCode() == 404, "Eliminazione perfetta");
     } 
@@ -116,7 +116,7 @@ class GoodsControllerTest extends WebTestCase
         $client->request('GET','/goods?count=true');
         $count2 = $client->getResponse()->getContent();
         
-        $this->assertFalse($count==$count2, "Inserimento non andato a buon fine, tutto ok");
+        $this->assertTrue($count==$count2, "Inserimento non andato a buon fine, tutto ok");
     }
     
     /**
