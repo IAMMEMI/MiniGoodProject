@@ -125,7 +125,6 @@ class GoodsControllerTest extends WebTestCase
                 'SELECT COUNT(g.id) '
                 . 'FROM AppBundle:Good g');
         $count2 = $query2->getResult();
-        
         $this->assertTrue($count!=$count2, "The good was not inserted for real!");
     }
     
@@ -143,13 +142,10 @@ class GoodsControllerTest extends WebTestCase
         //dal debug è venuto fuori che il risultato della query
         //è un array con un intero.
         $maxid = $result[0][1];
-        $client -> request('DELETE', '/goods/'.$maxid);
-        
+        $client -> request('DELETE', '/goods/'.$maxid);        
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
-        
         //se l'eliminazione è avvenuta con successo, allora avrò 404 not found
-        $client->request('GET', '/goods/'.$maxid);
-        
+        $client->request('GET', '/goods/'.$maxid);        
         $this->assertTrue($client->getResponse()->getStatusCode() == 404, 
                 "The good wasn't deleted for real from the db!");
     } 
@@ -196,9 +192,10 @@ class GoodsControllerTest extends WebTestCase
         //prendo l'oggetto da modificare
         $client->request('GET','/goods/1');
         $response1=$client->getResponse()->getContent();
+        $randomModify = rand();
         $client -> request('PATCH','/goods/1',
                 array(), array(), array("CONTENT_TYPE" => "application/json"),
-	'{"description":"modificato", "quantity": 45, "price": 2.6}');
+	'{"description":"modificato'.$randomModify.'", "quantity": 45, "price": 2.6}');
         $response = $client -> getResponse();
         
         $this->assertEquals(200, $response ->getStatusCode());
