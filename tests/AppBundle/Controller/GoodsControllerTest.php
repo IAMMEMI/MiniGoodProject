@@ -142,12 +142,7 @@ class GoodsControllerTest extends WebTestCase
         
         $this->assertTrue($testGood==$good2,"Goods aren't the same!");
         
-        //PROBLEMA: dato che nell'assert viene indicato che id è null perché 
-        //se lo gestisce il database, come posso fare il test se i due risultati
-        //non coincidono? Su good2, infatti, l'id è null (visto nel debug)
-        //SOLUZIONI:
-        //-prendo ogni campo a parte id e li confronto ---> lo posso fare?
-        //-faccio in modo di avere nel campo id di quello completo il null 
+        
     }
     
     /**
