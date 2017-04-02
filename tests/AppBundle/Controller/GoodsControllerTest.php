@@ -115,7 +115,7 @@ class GoodsControllerTest extends WebTestCase
         //proviamo a deserializare il contenuto 
         try {
             $testGood = $this->serializer->deserialize(
-                    $jsonGood, 'AppBundle\Entity\Good[]', "json");
+                    $jsonGood, 'AppBundle\Entity\Good', "json");
         } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
         $ex) {
              $this->fail("Failed to parse json content!") ; 
@@ -127,21 +127,18 @@ class GoodsControllerTest extends WebTestCase
         //Come prima li parsiamo in json e poi li deserializziamo per 
         //non rischiare di avere risultati diversi a causa del serializer.
         
-        $good = $this->em->getRepository('AppBundle:Good')->findById($maxid);
+        $good = $this->em->getRepository('AppBundle:Good')->findOneById($maxid);
         $jsonGood2 = $this->serializer->serialize($good, 'json');
         
          try {
             $good2 = $this->serializer->deserialize(
-                    $jsonGood2, 'AppBundle\Entity\Good[]', "json");
+                    $jsonGood2, 'AppBundle\Entity\Good', "json");
         } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
         $ex) {
              $this->fail("Failed to parse json content!") ; 
-        }
-        
-        
+        }        
         
         $this->assertTrue($testGood==$good2,"Goods aren't the same!");
-        
         
     }
     
@@ -224,7 +221,7 @@ class GoodsControllerTest extends WebTestCase
                 . 'FROM AppBundle:Good g');
         $count2 = $query2->getResult();
         
-        $this->assertTrue($count==$count2, "Inserimento non andato a buon fine, tutto ok");
+        $this->assertTrue($count==$count2, "Insert gone wrong");
     }
     
     /**
