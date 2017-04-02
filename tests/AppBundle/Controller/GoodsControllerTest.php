@@ -67,6 +67,7 @@ class GoodsControllerTest extends WebTestCase
         $client->request('GET', '/goods');
         $responseTest = $client -> getResponse();
         $jsonGood = $responseTest->getContent();
+       
         try {
             $testGoods = $this->serializer->deserialize(
                     $jsonGood, 'AppBundle\Entity\Good[]', "json");
@@ -77,8 +78,10 @@ class GoodsControllerTest extends WebTestCase
         //Estraiamo i goods effettuando una query dal db. Dobbiamo riparsarli 
         //in json e poi deserializzarli perchè altrimenti i due array sarebbero
         //leggermente diversi a causa del serializer
+        
         $goods = $this->em->getRepository('AppBundle:Good')->findAll();
         $jsonGood2 = $this->serializer->serialize($goods, 'json');
+        
          try {
             $goods = $this->serializer->deserialize(
                     $jsonGood2, 'AppBundle\Entity\Good[]', "json");
@@ -96,9 +99,55 @@ class GoodsControllerTest extends WebTestCase
      */
     public function testGetGood()
     {   
+        //Creiamo un client, prendiamo per comodità il maxid e facciamo la get.
         $client = static::createClient();
-        $client -> request('GET', '/goods/1');
+        $query = $this->em-> createQuery("SELECT MAX(g.id) "
+                . "from AppBundle:Good g"
+                );
+        $result = $query -> getResult();
+        //dal debug è venuto fuori che il risultato della query
+        //è un array con un intero.
+        $maxid = $result[0][1];
+        $client->request('GET', '/goods/'.$maxid);
+        $responseTest = $client -> getResponse();
+        $jsonGood = $responseTest->getContent();
+        
+        //proviamo a deserializare il contenuto 
+        try {
+            $testGood = $this->serializer->deserialize(
+                    $jsonGood, 'AppBundle\Entity\Good[]', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+  
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        
+        //Estraiamo il good con maxid con una query dal db. 
+        //Come prima li parsiamo in json e poi li deserializziamo per 
+        //non rischiare di avere risultati diversi a causa del serializer.
+        
+        $good = $this->em->getRepository('AppBundle:Good')->findById($maxid);
+        $jsonGood2 = $this->serializer->serialize($good, 'json');
+        
+         try {
+            $good2 = $this->serializer->deserialize(
+                    $jsonGood2, 'AppBundle\Entity\Good[]', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        
+        
+        
+        $this->assertTrue($testGood==$good2,"Goods aren't the same!");
+        
+        //PROBLEMA: dato che nell'assert viene indicato che id è null perché 
+        //se lo gestisce il database, come posso fare il test se i due risultati
+        //non coincidono? Su good2, infatti, l'id è null (visto nel debug)
+        //SOLUZIONI:
+        //-prendo ogni campo a parte id e li confronto ---> lo posso fare?
+        //-faccio in modo di avere nel campo id di quello completo il null 
     }
     
     /**
