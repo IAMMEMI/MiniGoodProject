@@ -67,7 +67,6 @@ class GoodsControllerTest extends WebTestCase
         $client->request('GET', '/goods');
         $responseTest = $client -> getResponse();
         $jsonGood = $responseTest->getContent();
-       
         try {
             $testGoods = $this->serializer->deserialize(
                     $jsonGood, 'AppBundle\Entity\Good[]', "json");
@@ -75,20 +74,9 @@ class GoodsControllerTest extends WebTestCase
         $ex) {
              $this->fail("Failed to parse json content!") ; 
         }
-        //Estraiamo i goods effettuando una query dal db. Dobbiamo riparsarli 
-        //in json e poi deserializzarli perchè altrimenti i due array sarebbero
-        //leggermente diversi a causa del serializer
-        
+        //Facciamo poi una query diretta al database e assicuriamo che
+        //siano gli stessi che ci ritornano la risposta
         $goods = $this->em->getRepository('AppBundle:Good')->findAll();
-        $jsonGood2 = $this->serializer->serialize($goods, 'json');
-        
-         try {
-            $goods = $this->serializer->deserialize(
-                    $jsonGood2, 'AppBundle\Entity\Good[]', "json");
-        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
-        $ex) {
-             $this->fail("Failed to parse json content!") ; 
-        }
         $this->assertTrue($testGoods==$goods,"Goods aren't the same!");
         
     }
@@ -111,7 +99,6 @@ class GoodsControllerTest extends WebTestCase
         $client->request('GET', '/goods/'.$maxid);
         $responseTest = $client -> getResponse();
         $jsonGood = $responseTest->getContent();
-        
         //proviamo a deserializare il contenuto 
         try {
             $testGood = $this->serializer->deserialize(
@@ -120,25 +107,11 @@ class GoodsControllerTest extends WebTestCase
         $ex) {
              $this->fail("Failed to parse json content!") ; 
         }
-  
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
         
         //Estraiamo il good con maxid con una query dal db. 
-        //Come prima li parsiamo in json e poi li deserializziamo per 
-        //non rischiare di avere risultati diversi a causa del serializer.
-        
         $good = $this->em->getRepository('AppBundle:Good')->findOneById($maxid);
-        $jsonGood2 = $this->serializer->serialize($good, 'json');
-        
-         try {
-            $good2 = $this->serializer->deserialize(
-                    $jsonGood2, 'AppBundle\Entity\Good', "json");
-        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
-        $ex) {
-             $this->fail("Failed to parse json content!") ; 
-        }        
-        
-        $this->assertTrue($testGood==$good2,"Goods aren't the same!");
+        $this->assertTrue($testGood==$good,"Goods aren't the same!");
         
     }
     
@@ -221,7 +194,7 @@ class GoodsControllerTest extends WebTestCase
                 . 'FROM AppBundle:Good g');
         $count2 = $query2->getResult();
         
-        $this->assertTrue($count==$count2, "Insert gone wrong");
+        $this->assertTrue($count==$count2, "The insert is successful!");
     }
     
     /**

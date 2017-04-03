@@ -83,6 +83,12 @@ class Good
     {
         return $this->id;
     }
+    
+    public function setId($id) {
+        
+        $this ->id = $id;
+        return $this;
+    }
 
     /**
      * Set description
