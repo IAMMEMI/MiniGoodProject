@@ -82,8 +82,68 @@ class GoodsControllerTest extends WebTestCase
     }
     
     /**
+     * This test asserts the correctness of the order function
+     */
+    public function testOrderedGoods() {
+         //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
+        //Dobbiamo poi fare il parsing dal json.
+        $client = static::createClient();
+        $client->request('GET', '/goods?field=description');
+        $responseTest = $client -> getResponse();
+        $jsonGood = $responseTest->getContent();
+        try {
+            $testGoods = $this->serializer->deserialize(
+                    $jsonGood, 'AppBundle\Entity\Good[]', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        //Facciamo poi una query diretta al database e assicuriamo che
+        //siano gli stessi che ci ritornano la risposta, nello stesso ordine
+        $goods = $this->em->getRepository('AppBundle:Good')->findAll();
+        usort($goods, function($good1, $good2){
+                return strcmp($good1->getDescription(), 
+                        $good2->getDescription());});
+        //Dobbiamo fare un foreach per verificare l'ordine, in quanto
+        //una singola uguaglianza non funzionerebbe se ci sono valori uguali
+        //in più di un oggetto, il loro ordine potrebbe essere diverso
+        $sameOrder = true;
+        for($i=0; $i < count($goods) || !$sameOrder; $i++) {
+            $sameOrder = $goods[$i]->getDescription() === $testGoods[$i] -> getDescription();
+        }
+        $this->assertTrue($sameOrder,"Wrong ordination!");
+    }
+    
+    /**
+     * This test asserts the correctness of the search function
+     */
+    public function testSearchGoods() {
+        
+        //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
+        //Dobbiamo poi fare il parsing dal json.
+        $client = static::createClient();
+        $client->request('GET', '/goods?field=description&&value=prova');
+        $responseTest = $client -> getResponse();
+        $jsonGood = $responseTest->getContent();
+        try {
+            $testGoods = $this->serializer->deserialize(
+                    $jsonGood, 'AppBundle\Entity\Good[]', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        //Facciamo poi una query diretta al database e assicuriamo che
+        //siano gli stessi che ci ritornano la risposta
+        $goods = $this->em->getRepository('AppBundle:Good')
+                ->findByDescription("prova");
+        $this->assertTrue($testGoods==$goods,"Goods aren't the same!");
+        
+    }
+    
+    /**
      * This test assert that a request 'GET' on a single good specyifing 
-     * the id actually sends back a response with a 200 status code
+     * the id actually sends back a response with a 200 status code, and that
+     * the good sent with it is actually the one we have requested
      */
     public function testGetGood()
     {   
