@@ -6,6 +6,8 @@
             <file>file:/opt/lampp/htdocs/ipc-unicam-backend/src/AppBundle/Entity/Good.php</file>
             <file>file:/opt/lampp/htdocs/ipc-unicam-backend/src/AppBundle/Controller/GoodsController.php</file>
             <file>file:/opt/lampp/htdocs/ipc-unicam-backend/tests/AppBundle/Controller/GoodsControllerTest.php</file>
+            <file>file:/opt/lampp/htdocs/ipc-unicam-backend/src/AppBundle/Utility.php</file>
+            <file>file:/opt/lampp/htdocs/ipc-unicam-backend/src/AppBundle/Entity/Error.php</file>
         </group>
     </open-files>
 </project-private>

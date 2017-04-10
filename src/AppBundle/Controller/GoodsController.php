@@ -10,6 +10,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use AppBundle\Utility;
+use AppBundle\Entity\Error as Error;
 
 /**
  * Class GoodsController handles all CRUD operations with good object.
@@ -47,34 +48,40 @@ class GoodsController extends Controller {
             if (is_null($value)) {
                 //Se non viene specificato un valore, allora è richiesto
                 //l'ordinamento
-                $goods = $this->orderedGoods($em, $field);
-                return $this->createResponse($request, $goods);
+                $goods = Utility::orderedGoods($em, $field);
+                return Utility::createOkResponse($request, $goods);
             } else {
                 //se abbiamo un valore allora dobbiamo effettuare la ricerca
                 //Validiamo il value a seconda del campo
+                $isValid = false;
                 switch ($field) {
                     case "description":
-                        $this->validateDescription($value);
+                        $isValid = Utility::validateDescription($value);
                         break;
                     case "id":
-                        $this->validateId($value);
+                        $isValid = Utility::validateId($value);
                         break;
                     case "quantity":
-                        $this->validateQuantity($value);
+                        $isValid = Utility::validateQuantity($value);
                         break;
                     case "price":
-                        $this->validatePrice($value);
+                        $isValid = Utility::validatePrice($value);
+                }
+                if(!$isValid) {
+                    $error = new Error(Utility::BAD_QUERY,
+                            "Invalid ".$field." in research query","");
+                    Utility::createBadFormatResponse($request, $error);
                 }
                 //Effettuiamo la ricerca
-                $goods = $this->searchForGoods($em, $field, $value);
-                return $this->createResponse($request, $goods);
+                $goods = Utility::searchForGoods($em, $field, $value);
+                return Utility::createOkResponse($request, $goods);
             }
         } 
         else {
             //Ritorno tutti i goods, in quanto non c'è una querystring che 
             //specifichi l'ordinamento o la ricerca
             $goods = $em->getRepository('AppBundle:Good')->findAll();
-            return $this->createResponse($request, $goods);
+            return Utility::createOkResponse($request, $goods);
         }
     }
 
@@ -90,17 +97,22 @@ class GoodsController extends Controller {
      */
     public function getGoodAction(Request $request, $id) {
         //controllo se l'id è valido
-        $this->validateId($id);
+        if(Utility::validateId($id)) {
 
-        $good = $this->getDoctrine()
-                ->getRepository('AppBundle:Good')
-                ->find($id);
-        if (!$good) {
-            throw new HttpException(404, "No good found for id " . $id);
+            $good = $this->getDoctrine()
+                    ->getRepository('AppBundle:Good')
+                    ->find($id);
+            if (!$good) {
+                throw new HttpException(404, "No good found for id " . $id);
+            }
+            $jsonGood = Utility::getSerializer()->serialize(
+                    $good, 'json');
+            return Utility::createOkResponse($request, $jsonGood);
+        } else {
+            $error = new Error(Utility::BAD_QUERY, "No valid ".$id." value",
+                    "id must be an integer, max 11 digits");
+            return Utility::createBadFormatResponse($request, $error);
         }
-        $jsonGood = Utility::getSerializer()->serialize(
-                $good, 'json');
-        return Utility::createOkResponse($request, $jsonGood);
     }
 
 // "get_goods" [GET] /goods/{id} will be the root
@@ -119,11 +131,13 @@ class GoodsController extends Controller {
 
         $jsonGood = $request->getContent();
         try {
-            $newGood = $this->serializer->deserialize(
+            $newGood = Utility::getSerializer()->deserialize(
                     $jsonGood, 'AppBundle\Entity\Good', "json");
         } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
         $ex) {
-            throw new HttpException(400, "Error parsing json object: " . $ex->getMessage());
+            $error = new Error(Utility::BAD_JSON, "Error parsing json object!",
+                    $ex -> getMessage());
+            return Utility::createBadFormatResponse($request, $error);
         }
 
         //Here we're validating the new object, using assertions
@@ -131,14 +145,19 @@ class GoodsController extends Controller {
         $validator = $this->get("validator");
         $errors = $validator->validate($newGood);
         if (count($errors) > 0) {
-            throw new HttpException(400, "Error validatin Json object: "
-            . (string) $errors);
+            $error = new Error(Utility::BAD_JSON, 
+                    "Error validating json object!",
+                    (string)$errors);
+            return Utility::createBadFormatResponse($request, $error);
         }
+        
         //This control is for the id, because it is auto-generated and can't
         //be specified by the client
         if ($newGood->getId() != null) {
-            throw new HttpException(400, "Error validating Json object: "
-            . "id field is auto-generated!");
+            $error = new Error(Utility::BAD_JSON, 
+                    "Error validating json object!",
+                    "id field is auto-generated!");
+            return Utility::createBadFormatResponse($request, $error);
         }
 
         $em = $this->getDoctrine()->getManager();
@@ -162,19 +181,31 @@ class GoodsController extends Controller {
 
         $jsonGood = $request->getContent();
         try {
-            $newGood = $this->serializer->deserialize(
+            $newGood = Utility::getSerializer()->deserialize(
                     $jsonGood, 'AppBundle\Entity\Good', "json");
         } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
         $ex) {
-            throw new HttpException(400, "Error parsing json object");
+            $error = new Error(Utility::BAD_JSON, "Error parsing json object!",
+                    $ex -> getMessage());
+            return Utility::createBadFormatResponse($request, $error);
+        }
+        //This control is for the id, because it is auto-generated and can't
+        //be specified by the client
+        if ($newGood->getId() != null) {
+            $error = new Error(Utility::BAD_JSON, 
+                    "Error validating json object!",
+                    "id field is auto-generated!");
+            return Utility::createBadFormatResponse($request, $error);
         }
         //Here we're validating the new object, using assertions
         //from the annotations of Good entity
         $validator = $this->get("validator");
         $errors = $validator->validate($newGood);
         if (count($errors) > 0) {
-            throw new HttpException(400, "Error validatin Json object: "
-            . (string) $errors);
+           $error = new Error(Utility::BAD_JSON, 
+                    "Error validating json object!",
+                    (string)$errors);
+            return Utility::createBadFormatResponse($request, $error);
         }
 
         $em = $this->getDoctrine()->getManager();
@@ -203,16 +234,21 @@ class GoodsController extends Controller {
     public function deleteGoodsAction(Request $request, $id) {
 
         $em = $this->getDoctrine()->getManager();
-        $this->validateId($id);
-        $good = $em->getRepository('AppBundle:Good')->find($id);
-        if (!$good) {
-            throw new HttpException(404, "No good found for id" . $id);
+        if(Utility::validateId($id)) {
+            $good = $em->getRepository('AppBundle:Good')->find($id);
+            if (!$good) {
+                throw new HttpException(404, "No good found for id" . $id);
+            }
+            $em->remove($good);
+            $em->flush();
+            $response = new Response("Deleted good with id " . $id);
+            $response->prepare($request);
+            return $response;
+        } else {
+            $error = new Error(Utility::BAD_QUERY, "No valid ".$id." value",
+                    "id must be an integer, max 11 digits");
+            return Utility::createBadFormatResponse($request, $error);
         }
-        $em->remove($good);
-        $em->flush();
-        $response = new Response("Deleted good with id " . $id);
-        $response->prepare($request);
-        return $response;
     }
 
     // "delete_good" [DELETE] /goods/{id}

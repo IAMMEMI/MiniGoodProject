@@ -9,6 +9,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use AppBundle\Error;
 
 
 class GoodsControllerTest extends WebTestCase
@@ -49,7 +50,7 @@ class GoodsControllerTest extends WebTestCase
         
         $this->assertTrue(
         $client->getResponse()->headers->contains(
-            'Content-Type',
+            'content-type',
             'application/json'
         ),
         'non è "application/json"');
@@ -77,6 +78,9 @@ class GoodsControllerTest extends WebTestCase
         //Facciamo poi una query diretta al database e assicuriamo che
         //siano gli stessi che ci ritornano la risposta
         $goods = $this->em->getRepository('AppBundle:Good')->findAll();
+        echo(var_dump($goods));
+        echo "\n FINE 1 \n";
+        echo(var_dump($testGoods));
         $this->assertTrue($testGoods==$goods,"Goods aren't the same!");
         
     }
