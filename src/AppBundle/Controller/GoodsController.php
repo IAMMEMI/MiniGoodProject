@@ -98,16 +98,14 @@ class GoodsController extends Controller {
     public function getGoodAction(Request $request, $id) {
         //controllo se l'id è valido
         if(Utility::validateId($id)) {
-
+            
             $good = $this->getDoctrine()
                     ->getRepository('AppBundle:Good')
                     ->find($id);
             if (!$good) {
                 throw new HttpException(404, "No good found for id " . $id);
             }
-            $jsonGood = Utility::getSerializer()->serialize(
-                    $good, 'json');
-            return Utility::createOkResponse($request, $jsonGood);
+            return Utility::createOkResponse($request, $good);
         } else {
             $error = new Error(Utility::BAD_QUERY, "No valid ".$id." value",
                     "id must be an integer, max 11 digits");

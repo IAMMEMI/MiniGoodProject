@@ -50,7 +50,7 @@ class GoodsControllerTest extends WebTestCase
         
         $this->assertTrue(
         $client->getResponse()->headers->contains(
-            'content-type',
+            'Content-type',
             'application/json'
         ),
         'non è "application/json"');
@@ -78,9 +78,6 @@ class GoodsControllerTest extends WebTestCase
         //Facciamo poi una query diretta al database e assicuriamo che
         //siano gli stessi che ci ritornano la risposta
         $goods = $this->em->getRepository('AppBundle:Good')->findAll();
-        echo(var_dump($goods));
-        echo "\n FINE 1 \n";
-        echo(var_dump($testGoods));
         $this->assertTrue($testGoods==$goods,"Goods aren't the same!");
         
     }

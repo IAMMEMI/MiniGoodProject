@@ -42,9 +42,9 @@ class Utility {
      */
     public static function createOkResponse($request, $goods) {
 
-        
-        $response = new Response($goods, Response::HTTP_OK, 
-                array("content-type" => "application/json"));
+        $json = Utility::getSerializer()->serialize($goods, 'json');
+        $response = new Response($json, Response::HTTP_OK, 
+                array("Content-type" => "application/json"));
         $response->prepare($request);
         return $response;
     }
@@ -58,9 +58,9 @@ class Utility {
      */
     public static function createBadFormatResponse($request, $error) {
         
-        Utility::getSerializer()->serialize($error, "json");
-        $response = new Response($error, Response::HTTP_BAD_REQUEST,
-                array("content-type" => "application/json") );
+        $json = Utility::getSerializer()->serialize($error, "json");
+        $response = new Response($json, Response::HTTP_BAD_REQUEST,
+                array("Content-type" => "application/json"));
         $response -> prepare($request);
         return $response;
     }
@@ -139,7 +139,7 @@ class Utility {
      */
     public static function validateDescription($value) {
          if(is_string($value))
-             return (strlen($value) > 25);
+             return (strlen($value) <= 25);
          else
              return false;
     }
@@ -153,7 +153,7 @@ class Utility {
     public static function validateId($value) {
 
         if (is_numeric($value) && $value >= 0)
-            return (strlen((string) $value) > 11);
+            return (strlen((string) $value) <= 11);
         else
             return false;
     }
@@ -166,7 +166,7 @@ class Utility {
      */
     public static function validateQuantity($value) {
         if (is_int($value + 0) && $value >= 0) 
-            return(strlen((string) $value) > 11);
+            return(strlen((string) $value) <= 11);
         else
             return false;
         

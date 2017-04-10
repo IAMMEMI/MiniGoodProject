@@ -74,7 +74,7 @@ class Error {
      */
     public function getType() {
         
-        return $type;
+        return $this ->type;
     
         
     }
@@ -97,7 +97,7 @@ class Error {
      */
     public function getTitle() {
         
-        return $title;
+        return $this ->title;
         
     }
     
@@ -119,7 +119,7 @@ class Error {
      */
     public function getMessage() {
         
-        return $message;
+        return $this -> message;
         
     }
     
