@@ -22,8 +22,7 @@ class Error {
      *
      * @var string
      * @Assert\Choice(
-     *    choices = {"BAD_JSON", 
-     *       "BAD_REQUEST", 
+     *    choices = {"BAD_JSON",
      *       "BAD_QUERY"}
      *    message = "Choose a valid type."
      * )

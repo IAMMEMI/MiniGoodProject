@@ -47,7 +47,10 @@ class GoodsController extends Controller {
             //ordered by that field.
             //Verifying that the field is valid... 
             if (!in_array($field, $properFields)) {
-                throw new HttpException(400, "The field specified is not valid.");
+                 //if the field is not valid, we have to send an error 
+                    $error = new Error(Utility::BAD_QUERY,
+                            "Invalid ".$field." in research query","");
+                    return Utility::createBadFormatResponse($request, $error);
             }
             if (is_null($value)) {
                 //if value is null then we have to order goods
@@ -78,9 +81,9 @@ class GoodsController extends Controller {
                         $isValid = Utility::validatePrice($value);
                 }
                 if(!$isValid) {
-                    //if the field is not valid, we have to send an error 
+                    //if the value is not valid, we have to send an error 
                     $error = new Error(Utility::BAD_QUERY,
-                            "Invalid ".$field." in research query","");
+                            "Invalid ".$field."value in research query","");
                     return Utility::createBadFormatResponse($request, $error);
                 }
                 //let's do the research

@@ -19,7 +19,6 @@ class Utility {
     
     
     const BAD_JSON = "BAD_JSON";
-    const BAD_REQUEST = "BAD_REQUEST";
     const BAD_QUERY = "BAD_QUERY";
     
     /**

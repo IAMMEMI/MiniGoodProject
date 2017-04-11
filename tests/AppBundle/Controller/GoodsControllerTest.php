@@ -278,6 +278,21 @@ class GoodsControllerTest extends WebTestCase
         $response = $client -> getResponse();
         
         $this->assertEquals(400, $response ->getStatusCode());
+        $this->assertTrue(
+        $response->headers->contains(
+            'Content-type',
+            'application/json'
+        ),
+        'Error response is not "application/json"');
+        try {
+            $testError = $this->serializer->deserialize(
+                 $response->getContent(), 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this->assertEquals($testError -> getType(), 
+                \AppBundle\Utility::BAD_JSON);
         
         //controllo ancora una volta che tutto sia andato bene;
         //dato che niente deve essere inserito non devo avere alcuna variazione sul numero di oggetti
@@ -331,6 +346,21 @@ class GoodsControllerTest extends WebTestCase
         $response = $client -> getResponse();
       
         $this->assertEquals(400, $response ->getStatusCode());
+        $this->assertTrue(
+        $response->headers->contains(
+            'Content-type',
+            'application/json'
+        ),
+        'Error response is not "application/json"');
+        try {
+            $testError = $this->serializer->deserialize(
+                 $response->getContent(), 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this->assertEquals($testError -> getType(), 
+                \AppBundle\Utility::BAD_JSON);
         
         //prendo l'oggetto non modificato e verifico che sia uguale a prima
         $client->request('GET','/goods/1');
@@ -339,6 +369,76 @@ class GoodsControllerTest extends WebTestCase
         $this->assertTrue($response1==$response2, 
                 "Error! the good was modified anyway!");
     }
+    
+    public function testQueryError() {
+        
+        $client = static::createClient();
+        //prendo l'oggetto da (non) modificare
+        $client->request('GET','/goods?field=beer');
+        $response=$client->getResponse();
+        $this->assertEquals(400, $response ->getStatusCode());
+        $this->assertTrue(
+        $response->headers->contains(
+            'Content-type',
+            'application/json'
+        ),
+        'Error response is not "application/json"');
+        try {
+            $testError = $this->serializer->deserialize(
+                 $response->getContent(), 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this->assertEquals($testError -> getType(), 
+                \AppBundle\Utility::BAD_QUERY);
+        $client->request('GET','/goods?field=decription&&value=beer');
+        $response=$client->getResponse();
+        $this->assertEquals(400, $response -> getStatusCode());
+        $this->assertTrue(
+        $response->headers->contains(
+            'Content-type',
+            'application/json'
+        ),
+        'Error response is not "application/json"');
+        try {
+            $testError = $this->serializer->deserialize(
+                 $response->getContent(), 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this->assertEquals($testError -> getType(), 
+                \AppBundle\Utility::BAD_QUERY);
+        
+        $client->request('GET',
+                '/goods?field=decription&&value=prova&&order=beer');
+        $response=$client->getResponse();
+        $this->assertEquals(400, $response -> getStatusCode());
+        $this->assertTrue(
+        $response->headers->contains(
+            'Content-type',
+            'application/json'
+        ),
+        'Error response is not "application/json"');
+        try {
+            $testError = $this->serializer->deserialize(
+                 $response->getContent(), 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this->assertEquals($testError -> getType(), 
+                \AppBundle\Utility::BAD_QUERY);
+    }
+    
+    public function testJsonError() {
+        
+         
+        
+    }
+    
+    
     
     
     
