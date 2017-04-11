@@ -101,26 +101,21 @@ class GoodsControllerTest extends WebTestCase
         }
         //Facciamo poi una query diretta al database e assicuriamo che
         //siano gli stessi che ci ritornano la risposta, nello stesso ordine
-        $goods = $this->em->getRepository('AppBundle:Good')->findAll();
-        usort($goods, function($good1, $good2){
-                return strcmp($good1->getDescription(), 
-                        $good2->getDescription());});
+       $query = $this->em
+                    ->getRepository('AppBundle:Good')
+                    ->createQueryBuilder('g')
+                    ->orderBy('g.description', 'desc')
+                    ->getQuery();
+            $goods = $query->getResult();
+        
+
         //Dobbiamo fare un foreach per verificare l'ordine, in quanto
         //una singola uguaglianza non funzionerebbe se ci sono valori uguali
         //in più di un oggetto, il loro ordine potrebbe essere diverso
-                        
-        //PROBLEMA NON EFFETTUA LA COMPARAZIONE IN MODO GIUSTO.
-        //i due array non sono ordinati correttamente.
-        //cambiata la condizione sul ciclo da or a and poiché altrimenti 
-        //si continuava l'esecuzione, mentre invece occorre uscire
                     
-                        
         $sameOrder = true;
         for($i=0; $i < count($goods) && $sameOrder; $i++) {
             $sameOrder = $goods[$i]->getDescription() === $testGoods[$i] -> getDescription();
-//            echo "GOODS[I]  ".var_dump($goods[$i]->getId());
-//            echo "TESTGOODS[I]  ".var_dump($testGoods[$i]->getId());
-//            echo var_dump($sameOrder);
         }
         $this->assertTrue($sameOrder,"Wrong ordination!");
     }
