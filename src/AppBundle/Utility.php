@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 /**
- * Description of Utility
+ * Utility is a class that supports GoodsController's class methods
  *
  * @author dezio
  */
@@ -64,6 +64,20 @@ class Utility {
         $response -> prepare($request);
         return $response;
     }
+    
+    /**
+     * This method returns the number of goods.
+     * @param type $em
+     * @return type 
+     */
+    public static function countGoods($em) {
+
+        //we create a query for having the number of goods 
+        $query = $em->createQuery(
+                'SELECT COUNT(g.id) '
+                . 'FROM AppBundle:Good g');
+        return $count = $query->getResult();
+    }
 
     /**
      * This method orders the goods if they are more than 20, otherwise
@@ -73,13 +87,10 @@ class Utility {
      * @return Array $goods
      * @throws HttpException
      */
-    public static function orderedGoods($em, $field) {
+    public static function orderedGoods($em, $field, $order) {
 
-        //we create a query for having the number of goods 
-        $query = $em->createQuery(
-                'SELECT COUNT(g.id) '
-                . 'FROM AppBundle:Good g');
-        $count = $query->getResult();
+       
+        $count = Utility::countGoods($em);
 
         //if goods are more than 20 we have to order them 
         if ($count > 20) {
@@ -90,7 +101,7 @@ class Utility {
                 $query = $em
                         ->getRepository('AppBundle:Good')
                         ->createQueryBuilder('p')
-                        ->orderBy('p.' . $field, 'ASC')
+                        ->orderBy('p.' . $field, $order)
                         ->getQuery();
                 $goods = $query->getResult();
                 return $goods;
@@ -181,5 +192,16 @@ class Utility {
      */
     public static function validatePrice($value) {
         return (is_numeric($value) && $value > 0);
+    }
+    
+    public static function validateOrder($ord){
+        if(is_string($ord)){
+        $order = strtolower($ord);
+            if($order == "asc" || $order=="desc"){
+                return true;
+            }  else {
+            return false;
+            }
+        }
     }
 }
