@@ -24,6 +24,8 @@ class GoodsController extends Controller {
      * and we have a field then we have to sort the array 
      * before we send it to the client.
      * Otherwise if goods are less than 20, we have to send it as they are.
+     * If the request contains the count queryparam then it returns the number 
+     * of goods to the client.
      * 
      * @param Request $request
      * @return Response 
@@ -37,22 +39,30 @@ class GoodsController extends Controller {
         $properFields = $em->getClassMetaData("AppBundle:Good")
                 ->getColumnNames();
         $field = $parameters->get("field");
+        $order = $parameters->get("order");
         $value = $parameters->get("value");
         $count = $parameters->get("count");
         if (!is_null($field)) {
-            //Se viene specificato un campo, allora restituiamo i goods ordinati
-            //Verifico che il campo nella queryString sia valido
+            //if a field is specified, we have to return all goods 
+            //ordered by that field.
+            //Verifying that the field is valid... 
             if (!in_array($field, $properFields)) {
                 throw new HttpException(400, "The field specified is not valid.");
             }
             if (is_null($value)) {
-                //Se non viene specificato un valore, allora è richiesto
-                //l'ordinamento
-                $goods = Utility::orderedGoods($em, $field);
+                //if value is null then we have to order goods
+                
+                $isValid = Utility::validateOrder($order);
+                if($isValid){
+                    $goods = Utility::orderedGoods($em, $field,$order);
                 return Utility::createOkResponse($request, $goods);
+                } 
+                
+                
             } else {
-                //se abbiamo un valore allora dobbiamo effettuare la ricerca
-                //Validiamo il value a seconda del campo
+                //if we have a value then we have to do the research
+                //first we verify that value is ok depending on the field.
+                
                 $isValid = false;
                 switch ($field) {
                     case "description":
@@ -68,18 +78,24 @@ class GoodsController extends Controller {
                         $isValid = Utility::validatePrice($value);
                 }
                 if(!$isValid) {
+                    //if the field is not valid, we have to send an error 
                     $error = new Error(Utility::BAD_QUERY,
                             "Invalid ".$field." in research query","");
-                    Utility::createBadFormatResponse($request, $error);
+                    return Utility::createBadFormatResponse($request, $error);
                 }
-                //Effettuiamo la ricerca
+                //let's do the research
                 $goods = Utility::searchForGoods($em, $field, $value);
                 return Utility::createOkResponse($request, $goods);
             }
-        } 
+            
+        }
+        elseif($count){
+            $count = Utility::countGoods($em);
+            return Utility::createOkResponse($request, $count);
+        }
         else {
-            //Ritorno tutti i goods, in quanto non c'è una querystring che 
-            //specifichi l'ordinamento o la ricerca
+            
+            //get all goods because there is no queryparam for order or research            
             $goods = $em->getRepository('AppBundle:Good')->findAll();
             return Utility::createOkResponse($request, $goods);
         }
@@ -96,7 +112,7 @@ class GoodsController extends Controller {
      * @throws HttpException
      */
     public function getGoodAction(Request $request, $id) {
-        //controllo se l'id è valido
+        //is the id valid?
         if(Utility::validateId($id)) {
             
             $good = $this->getDoctrine()
@@ -232,7 +248,9 @@ class GoodsController extends Controller {
     public function deleteGoodsAction(Request $request, $id) {
 
         $em = $this->getDoctrine()->getManager();
+        //if the id is ok
         if(Utility::validateId($id)) {
+            //find the good with the id specified in the request
             $good = $em->getRepository('AppBundle:Good')->find($id);
             if (!$good) {
                 throw new HttpException(404, "No good found for id" . $id);
