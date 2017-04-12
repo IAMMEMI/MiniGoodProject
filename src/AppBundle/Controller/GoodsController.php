@@ -24,8 +24,6 @@ class GoodsController extends Controller {
      * and we have a field then we have to sort the array 
      * before we send it to the client.
      * Otherwise if goods are less than 20, we have to send it as they are.
-     * If the request contains the count queryparam then it returns the number 
-     * of goods to the client.
      * 
      * @param Request $request
      * @return Response 
@@ -41,7 +39,6 @@ class GoodsController extends Controller {
         $field = $parameters->get("field");
         $order = $parameters->get("order");
         $value = $parameters->get("value");
-        $count = $parameters->get("count");
         if (!is_null($field)) {
             //if a field is specified, we have to return all goods 
             //ordered by that field.
@@ -91,10 +88,6 @@ class GoodsController extends Controller {
                 return Utility::createOkResponse($request, $goods);
             }
             
-        }
-        elseif($count){
-            $count = Utility::countGoods($em);
-            return Utility::createOkResponse($request, $count);
         }
         else {
             

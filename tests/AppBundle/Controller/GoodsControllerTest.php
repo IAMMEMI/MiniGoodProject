@@ -146,32 +146,7 @@ class GoodsControllerTest extends WebTestCase
         
     }
     
-    /**
-     * This test asserts the correctness of the count function
-     */
-    public function testCountGoods() {
-        
-        //sending a get request, with the count queryparam
-        $client = static::createClient();
-        $client->request('GET', '/goods?count==true');
-        $responseTest = $client -> getResponse();
-        $jsonResult = $responseTest->getContent();
-        try {
-            $testJsonResult = $this->serializer->deserialize(
-                    $jsonResult, 'AppBundle\Entity\Good[]', "json");
-        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
-        $ex) {
-             $this->fail("Failed to parse json content!") ; 
-        }
-        //Facciamo poi una query diretta al database e assicuriamo che
-        //siano gli stessi che ci ritornano la risposta
-        $query = $this->em->createQuery(
-                'SELECT COUNT(g.id) '
-                . 'FROM AppBundle:Good g');
-        return $count = $query->getResult();
-        $this->assertTrue($testJsonResult==$count,"The number of goods aren't the same!");
-        
-    }
+   
     /**
      * This test assert that a request 'GET' on a single good specyifing 
      * the id actually sends back a response with a 200 status code, and that
