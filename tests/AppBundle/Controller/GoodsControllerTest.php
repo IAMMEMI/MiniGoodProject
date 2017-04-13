@@ -1,10 +1,7 @@
 <?php
 namespace tests\AppBundle\Controller;
 
-use AppBundle\Controller\GoodsController;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
@@ -49,7 +46,7 @@ class GoodsControllerTest extends WebTestCase
         
         $this->assertTrue(
         $client->getResponse()->headers->contains(
-            'Content-Type',
+            'Content-type',
             'application/json'
         ),
         'non è "application/json"');
@@ -85,10 +82,12 @@ class GoodsControllerTest extends WebTestCase
      * This test asserts the correctness of the order function
      */
     public function testOrderedGoods() {
-         //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
+        //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
         //Dobbiamo poi fare il parsing dal json.
         $client = static::createClient();
-        $client->request('GET', '/goods?field=description');
+        $field = "description";
+        $order = "asc";
+        $client->request('GET', '/goods?field='.$field.'&&order='.$order);
         $responseTest = $client -> getResponse();
         $jsonGood = $responseTest->getContent();
         try {
@@ -100,15 +99,20 @@ class GoodsControllerTest extends WebTestCase
         }
         //Facciamo poi una query diretta al database e assicuriamo che
         //siano gli stessi che ci ritornano la risposta, nello stesso ordine
-        $goods = $this->em->getRepository('AppBundle:Good')->findAll();
-        usort($goods, function($good1, $good2){
-                return strcmp($good1->getDescription(), 
-                        $good2->getDescription());});
-        //Dobbiamo fare un foreach per verificare l'ordine, in quanto
-        //una singola uguaglianza non funzionerebbe se ci sono valori uguali
-        //in più di un oggetto, il loro ordine potrebbe essere diverso
+       $query = $this->em
+                    ->getRepository('AppBundle:Good')
+                    ->createQueryBuilder('g')
+                    ->orderBy('g.'.$field, $order)
+                    ->getQuery();
+        $goods = $query->getResult();
+        
+
+        //
+                    
         $sameOrder = true;
-        for($i=0; $i < count($goods) || !$sameOrder; $i++) {
+        //break when all the goods are checked or 
+        //when the order is not respected
+        for($i=0; $i < count($goods) && $sameOrder; $i++) {
             $sameOrder = $goods[$i]->getDescription() === $testGoods[$i] -> getDescription();
         }
         $this->assertTrue($sameOrder,"Wrong ordination!");
@@ -119,8 +123,9 @@ class GoodsControllerTest extends WebTestCase
      */
     public function testSearchGoods() {
         
-        //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
-        //Dobbiamo poi fare il parsing dal json.
+        //We need to do a get request in order to extract
+        //the response from the controller,
+        //then we parse the json inside.
         $client = static::createClient();
         $client->request('GET', '/goods?field=description&&value=prova');
         $responseTest = $client -> getResponse();
@@ -132,14 +137,15 @@ class GoodsControllerTest extends WebTestCase
         $ex) {
              $this->fail("Failed to parse json content!") ; 
         }
-        //Facciamo poi una query diretta al database e assicuriamo che
-        //siano gli stessi che ci ritornano la risposta
+        //We than do a query to make sure the objects of the response
+        //are the same from the database.
         $goods = $this->em->getRepository('AppBundle:Good')
                 ->findByDescription("prova");
         $this->assertTrue($testGoods==$goods,"Goods aren't the same!");
         
     }
     
+
     /**
      * This test assert that a request 'GET' on a single good specyifing 
      * the id actually sends back a response with a 200 status code, and that
@@ -147,19 +153,18 @@ class GoodsControllerTest extends WebTestCase
      */
     public function testGetGood()
     {   
-        //Creiamo un client, prendiamo per comodità il maxid e facciamo la get.
+        //We create a client and then we get the maximum id on the db
+        //in order to get the last good inserted.
         $client = static::createClient();
         $query = $this->em-> createQuery("SELECT MAX(g.id) "
                 . "from AppBundle:Good g"
                 );
         $result = $query -> getResult();
-        //dal debug è venuto fuori che il risultato della query
-        //è un array con un intero.
         $maxid = $result[0][1];
         $client->request('GET', '/goods/'.$maxid);
         $responseTest = $client -> getResponse();
         $jsonGood = $responseTest->getContent();
-        //proviamo a deserializare il contenuto 
+        //we try to deserialize the content 
         try {
             $testGood = $this->serializer->deserialize(
                     $jsonGood, 'AppBundle\Entity\Good', "json");
@@ -167,9 +172,9 @@ class GoodsControllerTest extends WebTestCase
         $ex) {
              $this->fail("Failed to parse json content!") ; 
         }
+        //We assert the correctness of the response status code and that the
+        //good returned is the right one, making a direct query to the db.
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
-        
-        //Estraiamo il good con maxid con una query dal db. 
         $good = $this->em->getRepository('AppBundle:Good')->findOneById($maxid);
         $this->assertTrue($testGood==$good,"Goods aren't the same!");
         
@@ -183,27 +188,17 @@ class GoodsControllerTest extends WebTestCase
      public function testInsertGood()
     {
         $client = static::createClient();
-        //conto il numero di oggetti good
-        $query = $this ->em->createQuery(
-                'SELECT COUNT(g.id) '
-                . 'FROM AppBundle:Good g');
-        $count = $query->getResult();
-        //eseguo la post
+        $count = \AppBundle\Utility::countGoods($this -> em);
         $client -> request('POST','/goods',array(), array(), array("CONTENT_TYPE" => "application/json"),
 	'{"description":"prova3", "quantity": 40, "price": 2.6}');
         $response = $client -> getResponse();
-        
         $this->assertEquals(200, $response ->getStatusCode());
-        
-        $query2 = $this ->em->createQuery(
-                'SELECT COUNT(g.id) '
-                . 'FROM AppBundle:Good g');
-        $count2 = $query2->getResult();
+        $count2 = \AppBundle\Utility::countGoods($this -> em);
         $this->assertTrue($count!=$count2, "The good was not inserted for real!");
     }
     
     /**
-     * This test test the deletion of a good
+     * This test tests the deletion of a good
      */
     public function testDeleteGood() 
     {
@@ -213,12 +208,11 @@ class GoodsControllerTest extends WebTestCase
                 . "from AppBundle:Good g"
                 );
         $result = $query -> getResult();
-        //dal debug è venuto fuori che il risultato della query
-        //è un array con un intero.
         $maxid = $result[0][1];
         $client -> request('DELETE', '/goods/'.$maxid);        
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
-        //se l'eliminazione è avvenuta con successo, allora avrò 404 not found
+        //We make a get for the same good just deleted, and the response
+        //status code must be a 404 because there isn't that good anymore.
         $client->request('GET', '/goods/'.$maxid);        
         $this->assertTrue($client->getResponse()->getStatusCode() == 404, 
                 "The good wasn't deleted for real from the db!");
@@ -232,81 +226,158 @@ class GoodsControllerTest extends WebTestCase
     public function testBadInsertGood()
     {
         $client = static::createClient();
-        
-        //conto il numero di goods
-        $query = $this ->em->createQuery(
-                'SELECT COUNT(g.id) '
-                . 'FROM AppBundle:Good g');
-        $count = $query->getResult();
-        
-        
+        $count = \AppBundle\Utility::countGoods($this->em);
         $client -> request('POST','/goods',array(), array(), array("CONTENT_TYPE" => "application/json"),
 	'{"description":"this description is much longer than 25 characters,'
                 . ' yes i know, really really bad", "quantity": 45.5, "price": 2.6}');
         $response = $client -> getResponse();
-        
         $this->assertEquals(400, $response ->getStatusCode());
-        
-        //controllo ancora una volta che tutto sia andato bene;
-        //dato che niente deve essere inserito non devo avere alcuna variazione sul numero di oggetti
-        $query2 = $this ->em->createQuery(
-                'SELECT COUNT(g.id) '
-                . 'FROM AppBundle:Good g');
-        $count2 = $query2->getResult();
-        
+        $this->assertTrue(
+        $response->headers->contains(
+            'Content-type',
+            'application/json'
+        ),
+        'Error response is not "application/json"');
+        try {
+            $testError = $this->serializer->deserialize(
+                 $response->getContent(), 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this->assertEquals($testError -> getType(), 
+                \AppBundle\Utility::BAD_JSON);
+        $count2 = \AppBundle\Utility::countGoods($this->em);
         $this->assertTrue($count==$count2, "The insert is successful!");
     }
     
     /**
-     * This test test the "PATCH" request
+     * This test tests the "PATCH" request
      */
     public function testPatchGood() 
     {
         $client = static::createClient();
-        //prendo l'oggetto da modificare
+        //I take the object to modify
         $client->request('GET','/goods/1');
         $response1=$client->getResponse()->getContent();
+        //We need a random function, because otherwise the test will fail
+        //the second time we modify the same object.
         $randomModify = rand();
         $client -> request('PATCH','/goods/1',
                 array(), array(), array("CONTENT_TYPE" => "application/json"),
 	'{"description":"modificato'.$randomModify.'", "quantity": 45, "price": 2.6}');
         $response = $client -> getResponse();
-        
         $this->assertEquals(200, $response ->getStatusCode());
-        
-        //prendo l'oggetto modificato e verifico che sia andato tutto a buon fine, 
-        //chiedendo se sono uguali
         $client->request('GET','/goods/1');
         $response2=$client->getResponse()->getContent();
-        
         $this->assertTrue($response1!=$response2, "Error! Good not modified!");
     }
     
     /**
-     * This test test the validation of the object also for the "PATCH"
-     * request
+     * This test tests the validation of the object also for the "PATCH"
+     * request, and tests that the error response is correct.
      */
     public function testBadPatchGood() 
     {
         $client = static::createClient();
-        //prendo l'oggetto da (non) modificare
         $client->request('GET','/goods/1');
         $response1=$client->getResponse()->getContent();
-        
+        //the quantity value is not correct, the validation will fail.
         $client -> request('PATCH','/goods/1',
                 array(), array(), array("CONTENT_TYPE" => "application/json"),
 	'{"description":"modificato2", "quantity": 45.8, "price": 2.6}');
         $response = $client -> getResponse();
       
+        //Here we check the response error.
         $this->assertEquals(400, $response ->getStatusCode());
-        
-        //prendo l'oggetto non modificato e verifico che sia uguale a prima
+        $this->assertTrue(
+        $response->headers->contains(
+            'Content-type',
+            'application/json'
+        ),
+        'Error response is not "application/json"');
+        try {
+            $testError = $this->serializer->deserialize(
+                 $response->getContent(), 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this->assertEquals($testError -> getType(), 
+                \AppBundle\Utility::BAD_JSON);
+        //We check that the good is the same as before
         $client->request('GET','/goods/1');
         $response2=$client->getResponse()->getContent();
-        
         $this->assertTrue($response1==$response2, 
                 "Error! the good was modified anyway!");
     }
+    
+    /**
+     * This test tests the correct Error response in case
+     * querystrings are wrong.
+     */
+    public function testQueryError() {
+        
+        $client = static::createClient();
+        $client->request('GET','/goods?field=beer');
+        $response=$client->getResponse();
+        $this->assertEquals(400, $response ->getStatusCode());
+        $this->assertTrue(
+        $response->headers->contains(
+            'Content-type',
+            'application/json'
+        ),
+        'Error response is not "application/json"');
+        try {
+            $testError = $this->serializer->deserialize(
+                 $response->getContent(), 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this->assertEquals($testError -> getType(), 
+                \AppBundle\Utility::BAD_QUERY);
+        $client->request('GET','/goods?field=decription&&value=beer');
+        $response=$client->getResponse();
+        $this->assertEquals(400, $response -> getStatusCode());
+        $this->assertTrue(
+        $response->headers->contains(
+            'Content-type',
+            'application/json'
+        ),
+        'Error response is not "application/json"');
+        try {
+            $testError = $this->serializer->deserialize(
+                 $response->getContent(), 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this->assertEquals($testError -> getType(), 
+                \AppBundle\Utility::BAD_QUERY);
+        
+        $client->request('GET',
+                '/goods?field=decription&&value=prova&&order=beer');
+        $response=$client->getResponse();
+        $this->assertEquals(400, $response -> getStatusCode());
+        $this->assertTrue(
+        $response->headers->contains(
+            'Content-type',
+            'application/json'
+        ),
+        'Error response is not "application/json"');
+        try {
+            $testError = $this->serializer->deserialize(
+                 $response->getContent(), 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this->assertEquals($testError -> getType(), 
+                \AppBundle\Utility::BAD_QUERY);
+    }
+    
+    
     
     
     
