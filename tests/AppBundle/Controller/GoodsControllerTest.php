@@ -89,7 +89,9 @@ class GoodsControllerTest extends WebTestCase
         //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
         //Dobbiamo poi fare il parsing dal json.
         $client = static::createClient();
-        $client->request('GET', '/goods?field=description&&order=desc');
+        $field = "description";
+        $order = "asc";
+        $client->request('GET', '/goods?field='.$field.'&&order='.$order);
         $responseTest = $client -> getResponse();
         $jsonGood = $responseTest->getContent();
         try {
@@ -104,9 +106,9 @@ class GoodsControllerTest extends WebTestCase
        $query = $this->em
                     ->getRepository('AppBundle:Good')
                     ->createQueryBuilder('g')
-                    ->orderBy('g.description', 'desc')
+                    ->orderBy('g.'.$field, $order)
                     ->getQuery();
-            $goods = $query->getResult();
+        $goods = $query->getResult();
         
 
         //Dobbiamo fare un foreach per verificare l'ordine, in quanto
@@ -114,6 +116,8 @@ class GoodsControllerTest extends WebTestCase
         //in più di un oggetto, il loro ordine potrebbe essere diverso
                     
         $sameOrder = true;
+        //going out of the loop when the equality is not respected 
+        //or go forward until all the rows are checked
         for($i=0; $i < count($goods) && $sameOrder; $i++) {
             $sameOrder = $goods[$i]->getDescription() === $testGoods[$i] -> getDescription();
         }
@@ -146,7 +150,7 @@ class GoodsControllerTest extends WebTestCase
         
     }
     
-   
+
     /**
      * This test assert that a request 'GET' on a single good specyifing 
      * the id actually sends back a response with a 200 status code, and that
@@ -345,6 +349,9 @@ class GoodsControllerTest extends WebTestCase
                 "Error! the good was modified anyway!");
     }
     
+    /**
+     * 
+     */
     public function testQueryError() {
         
         $client = static::createClient();
@@ -407,6 +414,9 @@ class GoodsControllerTest extends WebTestCase
                 \AppBundle\Utility::BAD_QUERY);
     }
     
+    /**
+     * 
+     */
     public function testJsonError() {
         
          
