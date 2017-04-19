@@ -140,6 +140,8 @@ class Utility {
         $goods = $query->getResult();
         return $goods;
     }
+    
+    
 
     /**
      * This method validates the description field value used in searching

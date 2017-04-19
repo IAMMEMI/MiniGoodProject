@@ -46,7 +46,7 @@ class GoodsController extends Controller {
             if (!in_array($field, $properFields)) {
                  //if the field is not valid, we have to send an error 
                     $error = new Error(Utility::BAD_QUERY,
-                            "Invalid ".$field." in research query","");
+                            "Invalid ".$field." in research/order query","");
                     return Utility::createBadFormatResponse($request, $error);
             }
             if (is_null($value)) {
@@ -55,7 +55,11 @@ class GoodsController extends Controller {
                 $isValid = Utility::validateOrder($order);
                 if($isValid){
                     $goods = Utility::orderedGoods($em, $field,$order);
-                return Utility::createOkResponse($request, $goods);
+                    return Utility::createOkResponse($request, $goods);
+                } else {
+                    //Order goods asc by default
+                    $goods = Utility::orderedGoods($em, $field,"asc");
+                    return Utility::createOkResponse($request, $goods);            
                 } 
                 
                 
