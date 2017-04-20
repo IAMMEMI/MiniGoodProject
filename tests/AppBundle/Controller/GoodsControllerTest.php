@@ -252,9 +252,9 @@ class GoodsControllerTest extends WebTestCase
     }
     
     /**
-     * This test tests the "PATCH" request
+     * This test tests the "PUT" request
      */
-    public function testPatchGood() 
+    public function testPutGood() 
     {
         $client = static::createClient();
         //I take the object to modify
@@ -263,7 +263,7 @@ class GoodsControllerTest extends WebTestCase
         //We need a random function, because otherwise the test will fail
         //the second time we modify the same object.
         $randomModify = rand();
-        $client -> request('PATCH','/goods/1',
+        $client -> request('PUT','/goods/1',
                 array(), array(), array("CONTENT_TYPE" => "application/json"),
 	'{"description":"modificato'.$randomModify.'", "quantity": 45, "price": 2.6}');
         $response = $client -> getResponse();
@@ -277,13 +277,13 @@ class GoodsControllerTest extends WebTestCase
      * This test tests the validation of the object also for the "PATCH"
      * request, and tests that the error response is correct.
      */
-    public function testBadPatchGood() 
+    public function testBadPutGood() 
     {
         $client = static::createClient();
         $client->request('GET','/goods/1');
         $response1=$client->getResponse()->getContent();
         //the quantity value is not correct, the validation will fail.
-        $client -> request('PATCH','/goods/1',
+        $client -> request('PUT','/goods/1',
                 array(), array(), array("CONTENT_TYPE" => "application/json"),
 	'{"description":"modificato2", "quantity": 45.8, "price": 2.6}');
         $response = $client -> getResponse();

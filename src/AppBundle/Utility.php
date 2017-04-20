@@ -150,10 +150,13 @@ class Utility {
      * @throws HttpException
      */
     public static function validateDescription($value) {
-         if(is_string($value))
+        
+         if(is_string($value)) {
              return (strlen($value) <= 25);
-         else
+         }
+         else {
              return false;
+         }
     }
 
     /**
@@ -164,10 +167,14 @@ class Utility {
      */
     public static function validateId($value) {
 
-        if (is_numeric($value) && $value >= 0)
-            return (strlen((string) $value) <= 11);
-        else
-            return false;
+        $result = false;
+        if(is_numeric($value)) {
+            $numericValue = $value + 0;
+            if (is_int($numericValue) && $numericValue >= 0) { 
+                $result = strlen((string) $value) <= 11;
+            }
+        }
+        return $result;
     }
 
     /**
@@ -177,32 +184,47 @@ class Utility {
      * false otherwise
      */
     public static function validateQuantity($value) {
-        if (is_int($value + 0) && $value >= 0) 
-            return(strlen((string) $value) <= 11);
-        else
-            return false;
         
+        $result = false;
+        if(is_numeric($value)) {
+            $numericValue = $value + 0;
+            if (is_int($numericValue) && $numericValue >= 0) { 
+                $result = strlen((string) $value) <= 11;
+            }
+        }
+        return $result;
     }
 
     /**
      * This method validates the price field value used in searching. 
      * Value must be numeric and major than zero.
-     * @param type $value as the price value
-     * @return boolean true if there isn't any problem with the input value
-     * false otherwise
+     * @param double $value as the price value
+     * @return boolean $result
      */
     public static function validatePrice($value) {
-        return (is_numeric($value) && $value > 0);
+        if(is_numeric($value)) {
+            //I make a conversion in case the input is a string
+            //and return true if is positive
+            return ($value + 0 > 0);
+        }
     }
     
+    
+    /**
+     * This method validates the order query-param value: the only
+     * values accepted are "asc" and "desc", case insensitive
+     * @param string $ord
+     * @return boolean $result
+     */
     public static function validateOrder($ord){
+        
+        $result = false;
         if(is_string($ord)){
         $order = strtolower($ord);
             if($order == "asc" || $order=="desc"){
-                return true;
-            }  else {
-            return false;
+                $result = true;
             }
         }
+        return $result;
     }
 }

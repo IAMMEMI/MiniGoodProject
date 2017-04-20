@@ -31,7 +31,7 @@ class GoodsController extends Controller {
      */
     public function getGoodsAction(Request $request) {
 
-
+        
         $parameters = $request->query;
         $em = $this->getDoctrine()->getManager();
         $properFields = $em->getClassMetaData("AppBundle:Good")
@@ -39,6 +39,7 @@ class GoodsController extends Controller {
         $field = $parameters->get("field");
         $order = $parameters->get("order");
         $value = $parameters->get("value");
+        //IS NULL O IS SET
         if (!is_null($field)) {
             //if a field is specified, we have to return all goods 
             //ordered by that field.
@@ -81,6 +82,7 @@ class GoodsController extends Controller {
                     case "price":
                         $isValid = Utility::validatePrice($value);
                 }
+                //ORDINE E CAMPO INSIEME
                 if(!$isValid) {
                     //if the value is not valid, we have to send an error 
                     $error = new Error(Utility::BAD_QUERY,
@@ -92,8 +94,7 @@ class GoodsController extends Controller {
                 return Utility::createOkResponse($request, $goods);
             }
             
-        }
-        else {
+        } else {
             
             //get all goods because there is no queryparam for order or research            
             $goods = $em->getRepository('AppBundle:Good')->findAll();
@@ -177,9 +178,7 @@ class GoodsController extends Controller {
         $em = $this->getDoctrine()->getManager();
         $em->persist($newGood);
         $em->flush();
-        $response = new Response("Saved new good with id " . $newGood->getId());
-        $response->prepare($request);
-        return $response;
+        return Utility::createOkResponse($request, $newGood);
     }
 
     // "insert_good" [POST] /goods
@@ -191,8 +190,8 @@ class GoodsController extends Controller {
      * @return Response
      * @throws HttpException
      */
-    public function patchGoodsAction(Request $request, $id) {
-
+    public function putGoodsAction(Request $request, $id) {
+         
         $jsonGood = $request->getContent();
         try {
             $newGood = Utility::getSerializer()->deserialize(
@@ -223,17 +222,15 @@ class GoodsController extends Controller {
         }
 
         $em = $this->getDoctrine()->getManager();
-        $oldGood = $em->getRepository('AppBundle:Good')->find($id);
-        if (!$oldGood) {
+        $dbGood = $em->getRepository('AppBundle:Good')->find($id);
+        if (!$dbGood) {
             throw new HttpException(404, "No good found for id" . $id);
         }
-        $oldGood->setDescription($newGood->getDescription());
-        $oldGood->setQuantity($newGood->getQuantity());
-        $oldGood->setPrice($newGood->getPrice());
+        $dbGood->setDescription($newGood->getDescription());
+        $dbGood->setQuantity($newGood->getQuantity());
+        $dbGood->setPrice($newGood->getPrice());
         $em->flush();
-        $response = new Response("Updated good with id " . $id);
-        $response->prepare($request);
-        return $response;
+        return Utility::createOkResponse($request, $dbGood);
     }
 
     // "modify_good" [PUT] /goods/{id}
