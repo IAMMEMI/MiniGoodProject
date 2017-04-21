@@ -4,6 +4,7 @@ namespace AppBundle;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
@@ -99,12 +100,18 @@ class Utility {
      * @throws HttpException
      */
     public static function orderedGoods($em, $field, $order) {
-
-        $isOrderValid = Utility::validateOrder($order);
-        $isFieldValid = Utility::validateField($em, $field);
         
-        if(!$isOrderValid && !$isFieldValid) {
-            //if the value is not valid, we have to send an error 
+        //If the order param is null, than we order asc mode by 
+        // default
+        if(is_null($order)) {
+            $order = "asc";
+            $isOrderValid = true;
+        } else {
+            $isOrderValid = Utility::validateOrder($order);
+        }
+        $isFieldValid = Utility::validateField($em, $field);
+        if(!$isOrderValid || !$isFieldValid) {
+            //if the params aren't valid, we have to send an error 
             $error = new Error(Utility::BAD_QUERY,
                 "Invalid ".$field."value in research query","");
             return $error;
@@ -153,14 +160,16 @@ class Utility {
      * @return Array $goods if it is all correct, Error $error if the query
      * params are not correct
      */
-    public static function searchForGoods($em, $field, $value, $order) {
+    public static function searchForGoods($em, $field, $value, $order = null) {
         
+        //If the order param is null, than we order asc mode by 
+        // default
         $isOrderValid = Utility::validateOrder($order);
         $isFieldValid = Utility::validateField($em, $field);
         if($isFieldValid) {
             $isValueValid = Utility::validateValue($field, $value);
         }
-        if(!$isFieldValid && !$isValueValid) {
+        if(!$isFieldValid || !$isValueValid) {
             //if the value is not valid, we have to send an error 
             $error = new Error(Utility::BAD_QUERY,
                 "Invalid ".$field."value in research query","");
@@ -178,12 +187,21 @@ class Utility {
         $queryBuilder -> where(
                             $queryBuilder -> expr() -> like('p.'.$field, $value)
                               );
-        if($isOrderValid) {
-            $queryBuilder-> orderBy('p.'.$field, $order);
+        if($isOrderValid || is_null($order)) {
+            if($isOrderValid)
+                $queryBuilder-> orderBy('p.'.$field, $order);
+            //PER IL MOMENTO FUNZIONA MA VEDERE SE SI TROVA UNA SOL PIU'
+            //ELEGANTE A MENTE FRESCA
+            $query = $queryBuilder -> getQuery();
+            $goods = $query -> getResult();
+            return $goods;
+        } else {
+            //if the value is not valid, we have to send an error 
+            $error = new Error(Utility::BAD_QUERY,
+                "Invalid ".$field."value in research query","");
+            return $error;
         }
-        $query = $queryBuilder -> getQuery();
-        $goods = $query -> getResult();
-        return $goods;
+        
     }
     
     /**

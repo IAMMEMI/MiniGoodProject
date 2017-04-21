@@ -38,10 +38,10 @@ class GoodsController extends Controller {
         $field = $parameters->get("field");
         $order = $parameters->get("order");
         $value = $parameters->get("value");
-        if (is_null($value) && !is_null($field) && !is_null($order)) {
+        if (is_null($value) && !is_null($field)) {
             //if value is null then we have to order goods
             $result = Utility::orderedGoods($em, $field, $order);
-        } else if (!is_null($value) && !is_null($field) && !is_null($order)) {
+        } else if (!is_null($value) && !is_null($field)) {
             //if we have a value then we have to do the research                
             //let's do the research
             $result = Utility::searchForGoods($em, $field, $value, $order);

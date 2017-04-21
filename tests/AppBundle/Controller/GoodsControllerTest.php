@@ -74,20 +74,23 @@ class GoodsControllerTest extends WebTestCase
         //Facciamo poi una query diretta al database e assicuriamo che
         //siano gli stessi che ci ritornano la risposta
         $goods = $this->em->getRepository('AppBundle:Good')->findAll();
-        $this->assertTrue($testGoods==$goods,"Goods aren't the same!");
-        
+        $this->assertTrue($testGoods==$goods,"Goods aren't the same!");   
     }
     
     /**
      * This test asserts the correctness of the order function
+     * @dataProvider orderedGoodsInputProvider
      */
-    public function testOrderedGoods() {
+    public function testOrderedGoods($field, $order = null) {
         //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
         //Dobbiamo poi fare il parsing dal json.
         $client = static::createClient();
-        $field = "description";
-        $order = "asc";
-        $client->request('GET', '/goods?field='.$field.'&&order='.$order);
+        $queryString = '/goods?field='.$field;
+        if(!is_null($order)) {
+            $queryString .="&&order=".$order;
+        }
+        $client->request('GET', $queryString);
+        
         $responseTest = $client -> getResponse();
         $jsonGood = $responseTest->getContent();
         try {
@@ -105,10 +108,6 @@ class GoodsControllerTest extends WebTestCase
                     ->orderBy('g.'.$field, $order)
                     ->getQuery();
         $goods = $query->getResult();
-        
-
-        //
-                    
         $sameOrder = true;
         //break when all the goods are checked or 
         //when the order is not respected
@@ -119,10 +118,76 @@ class GoodsControllerTest extends WebTestCase
     }
     
     /**
+     * This test asserts the correctness of the order function
+     * @dataProvider badQueriesOrderedGoodsInputProvider
+     */
+    public function testBadQueriesOrderedGoods($field, $order = null) {
+        //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
+        //Dobbiamo poi fare il parsing dal json.
+        $client = static::createClient();
+        $queryString = '/goods?field='.$field;
+        if(!is_null($order)) {
+            $queryString .="&&order=".$order;
+        }
+        $client->request('GET', $queryString);
+        
+        $responseTest = $client -> getResponse();
+        $jsonGood = $responseTest->getContent();
+        try {
+            $testError = $this->serializer->deserialize(
+                    $jsonGood, 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this -> assertTrue($testError -> getType() 
+                == \AppBundle\Utility::BAD_QUERY);
+        
+    }
+    
+     /**
+     * This function is used as a dataProvider for
+     * the testSearchGoods
+     * @return array $data
+     */
+    public function badQueriesorderedGoodsInputProvider() {
+        
+         return array(
+            array("beer","asc"),
+            array("margarida"),
+            array("no more tests","descx"),
+            array("quantity", "show"),
+        );
+    }
+    
+     /**
+     * This function is used as a dataProvider for
+     * the testSearchGoods
+     * @return array $data
+     */
+    public function orderedGoodsInputProvider() {
+        
+         return array(
+            array("description","asc"),
+            array("description"),
+            array("description","desc"),
+            array("quantity", "asc"),
+            array("quantity","desc"),
+            array("quantity"),
+            array("id", "asc"),
+            array("id", "desc"),
+            array("id"),
+            array("price","asc"),
+            array("price", "desc"),
+            array("price"),
+        );
+    }
+    
+    /**
      * This test asserts the correctness of the search function
      * @dataProvider searchForGoodsInputProvider
      */
-    public function testSearchGoods($field, $value, $order) {
+    public function testSearchGoods($field, $value, $order = null) {
         
         //We need to do a get request in order to extract
         //the response from the controller,
@@ -142,7 +207,7 @@ class GoodsControllerTest extends WebTestCase
         $ex) {
              $this->fail("Failed to parse json content!") ; 
         }
-        $queryBuilder = $em -> createQueryBuilder();
+        $queryBuilder = $this -> em -> createQueryBuilder();
         $queryBuilder -> select (array('p'))
                           -> from('AppBundle:Good', 'p');
         //Preparing the field value for the query
@@ -159,13 +224,14 @@ class GoodsControllerTest extends WebTestCase
         }
         $query = $queryBuilder -> getQuery();
         $goods = $query -> getResult();
+
         $this->assertTrue($testGoods==$goods,"Goods aren't the same!");
         
     }
     
     /**
      * This function is used as a dataProvider for
-     * the testBadValidatePrice
+     * the testSearchGoods
      * @return array $data
      */
     public function searchForGoodsInputProvider() {
@@ -177,10 +243,59 @@ class GoodsControllerTest extends WebTestCase
             array("id",5),
             array("description","prova","asc"),
             array("description","prova","desc"),
-
-
         );
     }
+    
+    
+    /**
+     * This test asserts the correctness of the search function
+     * @dataProvider badQueriesSearchForGoodsInputProvider
+     */
+    public function testBadQueriesSearchForGoods($field, $value, $order = null) {
+        
+        //We need to do a get request in order to extract
+        //the response from the controller,
+        //then we parse the json inside.
+        $client = static::createClient();
+        $requestURL = '/goods?field='.$field.'&&value='.$value;
+        if($order != null) {
+            $requestURL .= '&&order='.$order;
+        }
+        $client->request('GET', $requestURL);
+        $responseTest = $client -> getResponse();
+        $jsonGood = $responseTest->getContent();
+        try {
+            $testError = $this->serializer->deserialize(
+                    $jsonGood, 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this -> assertTrue($testError -> getType() 
+                == \AppBundle\Utility::BAD_QUERY);
+    }
+    
+    /**
+     * This function is used as a dataProvider for
+     * the testSearchGoods
+     * @return array $data
+     */
+    public function badQueriesSearchForGoodsInputProvider() {
+        
+         return array(
+            array("descrizio","prova"),
+            array("prizzo",2.6),
+            array("quantita", 40),
+            array("identificativo",5),
+            array("description","prova","ascella"),
+            array("description","prova","desk"),
+            array("descrizio", "prova", "desk"),
+            array("id", "prova"),
+            array("quantity", "prova"),
+        );
+    }
+    
+    
     
 
     /**
@@ -347,75 +462,6 @@ class GoodsControllerTest extends WebTestCase
         $response2=$client->getResponse()->getContent();
         $this->assertTrue($response1==$response2, 
                 "Error! the good was modified anyway!");
-    }
-    
-    /**
-     * This test tests the correct Error response in case
-     * querystrings are wrong.
-     */
-    public function testQueryError() {
-        
-        $client = static::createClient();
-        $client->request('GET','/goods?field=beer');
-        $response=$client->getResponse();
-        $this->assertEquals(400, $response ->getStatusCode());
-        $this->assertTrue(
-        $response->headers->contains(
-            'Content-type',
-            'application/json'
-        ),
-        'Error response is not "application/json"');
-        try {
-            $testError = $this->serializer->deserialize(
-                 $response->getContent(), 'AppBundle\Entity\Error', "json");
-        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
-        $ex) {
-             $this->fail("Failed to parse json content!") ; 
-        }
-        $this->assertEquals($testError -> getType(), 
-                \AppBundle\Utility::BAD_QUERY);
-        $client->request('GET','/goods?field=decription&&value=beer');
-        $response=$client->getResponse();
-        $this->assertEquals(400, $response -> getStatusCode());
-        $this->assertTrue(
-        $response->headers->contains(
-            'Content-type',
-            'application/json'
-        ),
-        'Error response is not "application/json"');
-        try {
-            $testError = $this->serializer->deserialize(
-                 $response->getContent(), 'AppBundle\Entity\Error', "json");
-        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
-        $ex) {
-             $this->fail("Failed to parse json content!") ; 
-        }
-        $this->assertEquals($testError -> getType(), 
-                \AppBundle\Utility::BAD_QUERY);
-        
-        $client->request('GET',
-                '/goods?field=decription&&value=prova&&order=beer');
-        $response=$client->getResponse();
-        $this->assertEquals(400, $response -> getStatusCode());
-        $this->assertTrue(
-        $response->headers->contains(
-            'Content-type',
-            'application/json'
-        ),
-        'Error response is not "application/json"');
-        try {
-            $testError = $this->serializer->deserialize(
-                 $response->getContent(), 'AppBundle\Entity\Error', "json");
-        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
-        $ex) {
-             $this->fail("Failed to parse json content!") ; 
-        }
-        $this->assertEquals($testError -> getType(), 
-                \AppBundle\Utility::BAD_QUERY);
-    }
-    
-    
-    
-    
+    }  
     
 }
