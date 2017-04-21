@@ -92,7 +92,8 @@ class Utility {
 
     /**
      * This method orders the goods if they are more than 20, otherwise
-     * it returns all the goods as an array, leaving this task to the client
+     * it returns all the goods as an array, leaving this task to the client.
+     * If the order is not specified then is ascending by default.
      * @param type $field
      * @param Doctrine\ORM\EntityManager $em
      * @return Array $goods if it is all correct, Error $error if the query
@@ -231,33 +232,25 @@ class Utility {
      */
     public static function validateValue($field, $value) {
         
-                $result = false;
-                switch ($field) {
-                    case "description":
-                        $result = Utility::validateDescription($value);
-                        break;
-                    case "id":
-                        $result = Utility::validateId($value);
-                        break;
-                    case "quantity":
-                        $result = Utility::validateQuantity($value);
-                        break;
-                    case "price":
-                        $result = Utility::validatePrice($value);
-                }
-                return $result;
-                /*if(!$isValid) {
-                    //if the value is not valid, we have to send an error 
-                    $error = new Error(Utility::BAD_QUERY,
-                            "Invalid ".$field."value in research query","");
-                    return Utility::createBadFormatResponse($request, $error);
-                }*/
+        $result = false;
+        switch ($field) {
+            case "description":
+                $result = Utility::validateDescription($value);
+                break;
+            case "id":
+                $result = Utility::validateId($value);
+                break;
+            case "quantity":
+                $result = Utility::validateQuantity($value);
+                break;
+            case "price":
+                $result = Utility::validatePrice($value);
+        }
+        return $result;
+       
     }
     
-    
-    
-    
-
+   
     /**
      * This method validates the description field value used in searching
      * @param type $value as the description value
