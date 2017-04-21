@@ -51,19 +51,9 @@ class GoodsController extends Controller {
                     return Utility::createBadFormatResponse($request, $error);
             }
             if (is_null($value)) {
-                //if value is null then we have to order goods
                 
-                $isValid = Utility::validateOrder($order);
-                if($isValid){
                     $goods = Utility::orderedGoods($em, $field,$order);
                     return Utility::createOkResponse($request, $goods);
-                } else {
-                    //Order goods asc by default
-                    $goods = Utility::orderedGoods($em, $field,"asc");
-                    return Utility::createOkResponse($request, $goods);            
-                } 
-                
-                
             } else {
                 //if we have a value then we have to do the research
                 //first we verify that value is ok depending on the field.
@@ -82,7 +72,6 @@ class GoodsController extends Controller {
                     case "price":
                         $isValid = Utility::validatePrice($value);
                 }
-                //ORDINE E CAMPO INSIEME
                 if(!$isValid) {
                     //if the value is not valid, we have to send an error 
                     $error = new Error(Utility::BAD_QUERY,
@@ -90,12 +79,11 @@ class GoodsController extends Controller {
                     return Utility::createBadFormatResponse($request, $error);
                 }
                 //let's do the research
-                $goods = Utility::searchForGoods($em, $field, $value);
+                $goods = Utility::searchForGoods($em, $field, $value, $order);
                 return Utility::createOkResponse($request, $goods);
             }
             
         } else {
-            
             //get all goods because there is no queryparam for order or research            
             $goods = $em->getRepository('AppBundle:Good')->findAll();
             return Utility::createOkResponse($request, $goods);

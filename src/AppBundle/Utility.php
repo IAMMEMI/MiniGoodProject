@@ -124,22 +124,53 @@ class Utility {
     }
 
     /**
-     * It searches for goods with the specified field value and returns 
-     * the proper array of goods
+     * It searches for goods that have $value inside their specified $field value,
+     * using the regex %$value%: it means that the string is searched inside the 
+     * field.
      * @param Doctrine\ORM\EntityManager $em
      * @param type $field
      * @param type $value
      * @return Array $goods
      */
-    public static function searchForGoods($em, $field, $value) {
-
-        $query = $em->createQuery("SELECT p "
-                . 'FROM AppBundle\Entity\Good p '
-                . "WHERE p." . $field . " = :value");
-        $query->setParameter('value', $value);
-        $goods = $query->getResult();
+    public static function searchForGoods($em, $field, $value, $order) {
+        
+        $isValid = Utility::validateOrder($order);
+        $queryBuilder = $em -> createQueryBuilder();
+        //CERCARE UNA SOLUZIONE PIÙ ONESTA ALLE QUERY HARDCODED
+        $queryBuilder -> select (array('p'))
+                          -> from('AppBundle:Good', 'p');
+        if($field == "description") {
+            $value = "'%".$value."%'";
+        } else {
+            $value = "'".$value."'";
+        }
+        if($isValid) {
+            
+            $queryBuilder -> where(
+                             $queryBuilder -> expr() -> like('p.'.$field, $value)
+                                  )
+                          -> orderBy('p.'.$field, $order);
+        } else {
+            $queryBuilder -> where(
+                             $queryBuilder -> expr() -> like('p.'.$field, $value)
+                                  );
+        }
+        $query = $queryBuilder -> getQuery();
+        $goods = $query -> getResult();
+        /*if($field == "description") {
+            //If the field is description, than we can search inside the
+            //string for the specified value, using a regex
+            $query->setParameter('value', '%'.$value."%");
+        } 
+        else */
+            //In the other cases, we search for the exact value
+            //$query->setParameter('value', $value);
+        
+            
         return $goods;
     }
+    
+    
     
     
 

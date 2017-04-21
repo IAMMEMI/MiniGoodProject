@@ -120,16 +120,23 @@ class GoodsControllerTest extends WebTestCase
     
     /**
      * This test asserts the correctness of the search function
+     * @dataProvider searchForGoodsInputProvider
      */
-    public function testSearchGoods() {
+    public function testSearchGoods($field, $value, $order = null) {
         
         //We need to do a get request in order to extract
         //the response from the controller,
         //then we parse the json inside.
         $client = static::createClient();
-        $client->request('GET', '/goods?field=description&&value=prova');
+        $requestURL = '/goods?field='.$field.'&&value='.$value;
+        if($order != null) {
+            $requestURL .= '&&order='.$order;
+        }
+        $client->request('GET', $requestURL);
         $responseTest = $client -> getResponse();
         $jsonGood = $responseTest->getContent();
+        //DEBUG
+        echo var_dump($jsonGood)."\n-------------------\n";
         try {
             $testGoods = $this->serializer->deserialize(
                     $jsonGood, 'AppBundle\Entity\Good[]', "json");
@@ -139,10 +146,37 @@ class GoodsControllerTest extends WebTestCase
         }
         //We than do a query to make sure the objects of the response
         //are the same from the database.
-        $goods = $this->em->getRepository('AppBundle:Good')
-                ->findByDescription("prova");
+        if($field == "description") {
+            //fare la query con % trovare il modoDEBUG
+        }
+        if(!is_null($order)) {
+            $goods = $this->em->getRepository('AppBundle:Good')
+                ->findBy(array($field => $value),array($field => $order));
+        } else {
+            $goods = $this->em->getRepository('AppBundle:Good')
+                ->findBy(array($field => $value));
+        }
         $this->assertTrue($testGoods==$goods,"Goods aren't the same!");
         
+    }
+    
+    /**
+     * This function is used as a dataProvider for
+     * the testBadValidatePrice
+     * @return array $data
+     */
+    public function searchForGoodsInputProvider() {
+        
+         return array(
+            array("description","prova"),
+            array("price",2.6),
+            array("quantity", 40),
+            array("id",5),
+            array("description","prova","asc"),
+            array("description","prova","desc"),
+
+
+        );
     }
     
 
