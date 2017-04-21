@@ -139,7 +139,7 @@ class UtilityTest extends WebTestCase {
     public function badPriceInputProvider() {
         
          return array(
-            array("this is not an price!"),
+            array("this is not a price!"),
             array(-50),
             array(null),
             array(true, false),
@@ -234,13 +234,5 @@ class UtilityTest extends WebTestCase {
         
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
 }
