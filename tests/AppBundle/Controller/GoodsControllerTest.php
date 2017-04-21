@@ -122,7 +122,7 @@ class GoodsControllerTest extends WebTestCase
      * This test asserts the correctness of the search function
      * @dataProvider searchForGoodsInputProvider
      */
-    public function testSearchGoods($field, $value, $order = null) {
+    public function testSearchGoods($field, $value, $order) {
         
         //We need to do a get request in order to extract
         //the response from the controller,
@@ -135,8 +135,6 @@ class GoodsControllerTest extends WebTestCase
         $client->request('GET', $requestURL);
         $responseTest = $client -> getResponse();
         $jsonGood = $responseTest->getContent();
-        //DEBUG
-        echo var_dump($jsonGood)."\n-------------------\n";
         try {
             $testGoods = $this->serializer->deserialize(
                     $jsonGood, 'AppBundle\Entity\Good[]', "json");
@@ -144,18 +142,23 @@ class GoodsControllerTest extends WebTestCase
         $ex) {
              $this->fail("Failed to parse json content!") ; 
         }
-        //We than do a query to make sure the objects of the response
-        //are the same from the database.
+        $queryBuilder = $em -> createQueryBuilder();
+        $queryBuilder -> select (array('p'))
+                          -> from('AppBundle:Good', 'p');
+        //Preparing the field value for the query
         if($field == "description") {
-            //fare la query con % trovare il modoDEBUG
-        }
-        if(!is_null($order)) {
-            $goods = $this->em->getRepository('AppBundle:Good')
-                ->findBy(array($field => $value),array($field => $order));
+            $value = "'%".$value."%'";
         } else {
-            $goods = $this->em->getRepository('AppBundle:Good')
-                ->findBy(array($field => $value));
+            $value = "'".$value."'";
         }
+        $queryBuilder -> where(
+                            $queryBuilder -> expr() -> like('p.'.$field, $value)
+                              );
+        if(!is_null($order)) {
+            $queryBuilder-> orderBy('p.'.$field, $order);
+        }
+        $query = $queryBuilder -> getQuery();
+        $goods = $query -> getResult();
         $this->assertTrue($testGoods==$goods,"Goods aren't the same!");
         
     }

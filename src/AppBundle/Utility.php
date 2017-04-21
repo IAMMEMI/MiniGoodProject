@@ -9,6 +9,8 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use AppBundle\Entity\Error;
+
 
 /**
  * Utility is a class that supports GoodsController's class methods
@@ -77,20 +79,37 @@ class Utility {
                 . 'FROM AppBundle:Good g');
         return $count = $query->getResult();
     }
+    
+    /**
+     * Return all goods in the database
+     * @param Doctrine\ORM\EntityManager $em
+     */
+    public static function getAllGoods($em) {
+        $goods = $em -> getRepository('AppBundle:Good') -> findAll();
+        return $goods;
+    }
 
     /**
      * This method orders the goods if they are more than 20, otherwise
      * it returns all the goods as an array, leaving this task to the client
      * @param type $field
      * @param Doctrine\ORM\EntityManager $em
-     * @return Array $goods
+     * @return Array $goods if it is all correct, Error $error if the query
+     * params are not correct
      * @throws HttpException
      */
     public static function orderedGoods($em, $field, $order) {
 
-       
+        $isOrderValid = Utility::validateOrder($order);
+        $isFieldValid = Utility::validateField($em, $field);
+        
+        if(!$isOrderValid && !$isFieldValid) {
+            //if the value is not valid, we have to send an error 
+            $error = new Error(Utility::BAD_QUERY,
+                "Invalid ".$field."value in research query","");
+            return $error;
+        }
         $count = Utility::countGoods($em);
-
         //if goods are more than 20 we have to order them 
         if ($count > 20) {
             //so goods are more than 20
@@ -118,56 +137,103 @@ class Utility {
             }
             //so goods are less than 20 and more than 0.
             //let's import all goods
-            $goods = $em->getRepository('AppBundle:Good')->findAll();
-            return $goods;
+            return Utility::getAllGoods($em);
         }
     }
 
     /**
-     * It searches for goods that have $value inside their specified $field value,
-     * using the regex %$value%: it means that the string is searched inside the 
+     * It searches for goods that have $value
+     * inside their specified $field value,
+     * using the regex %$value% if the field is description:
+     * it means that the value string is searched inside the 
      * field.
      * @param Doctrine\ORM\EntityManager $em
      * @param type $field
      * @param type $value
-     * @return Array $goods
+     * @return Array $goods if it is all correct, Error $error if the query
+     * params are not correct
      */
     public static function searchForGoods($em, $field, $value, $order) {
         
-        $isValid = Utility::validateOrder($order);
+        $isOrderValid = Utility::validateOrder($order);
+        $isFieldValid = Utility::validateField($em, $field);
+        if($isFieldValid) {
+            $isValueValid = Utility::validateValue($field, $value);
+        }
+        if(!$isFieldValid && !$isValueValid) {
+            //if the value is not valid, we have to send an error 
+            $error = new Error(Utility::BAD_QUERY,
+                "Invalid ".$field."value in research query","");
+            return $error;
+        }
         $queryBuilder = $em -> createQueryBuilder();
-        //CERCARE UNA SOLUZIONE PIÙ ONESTA ALLE QUERY HARDCODED
         $queryBuilder -> select (array('p'))
                           -> from('AppBundle:Good', 'p');
+        //Preparing the field value for the query
         if($field == "description") {
             $value = "'%".$value."%'";
         } else {
             $value = "'".$value."'";
         }
-        if($isValid) {
-            
-            $queryBuilder -> where(
-                             $queryBuilder -> expr() -> like('p.'.$field, $value)
-                                  )
-                          -> orderBy('p.'.$field, $order);
-        } else {
-            $queryBuilder -> where(
-                             $queryBuilder -> expr() -> like('p.'.$field, $value)
-                                  );
+        $queryBuilder -> where(
+                            $queryBuilder -> expr() -> like('p.'.$field, $value)
+                              );
+        if($isOrderValid) {
+            $queryBuilder-> orderBy('p.'.$field, $order);
         }
         $query = $queryBuilder -> getQuery();
         $goods = $query -> getResult();
-        /*if($field == "description") {
-            //If the field is description, than we can search inside the
-            //string for the specified value, using a regex
-            $query->setParameter('value', '%'.$value."%");
-        } 
-        else */
-            //In the other cases, we search for the exact value
-            //$query->setParameter('value', $value);
-        
-            
         return $goods;
+    }
+    
+    /**
+     * This method validates a field, represented as a string,
+     * for the good entity.
+     * @param Doctrine\ORM\EntityManager $em
+     * @param string $field
+     * @return bool $result
+     */
+    public static function validateField($em, $field) {
+        $result = false;
+        if(is_string($field)) {
+            $properFields = $em->getClassMetaData("AppBundle:Good")
+                ->getColumnNames();
+            $result =  in_array($field, $properFields);
+        }
+        return $result;
+        
+    }
+    
+    /**
+     * This methods validates a value, given its field, 
+     * for the good entity
+     * @param string $field
+     * @param type $value
+     * @return bool $result
+     */
+    public static function validateValue($field, $value) {
+        
+                $result = false;
+                switch ($field) {
+                    case "description":
+                        $result = Utility::validateDescription($value);
+                        break;
+                    case "id":
+                        $result = Utility::validateId($value);
+                        break;
+                    case "quantity":
+                        $result = Utility::validateQuantity($value);
+                        break;
+                    case "price":
+                        $result = Utility::validatePrice($value);
+                }
+                return $result;
+                /*if(!$isValid) {
+                    //if the value is not valid, we have to send an error 
+                    $error = new Error(Utility::BAD_QUERY,
+                            "Invalid ".$field."value in research query","");
+                    return Utility::createBadFormatResponse($request, $error);
+                }*/
     }
     
     
