@@ -12,18 +12,16 @@ use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use AppBundle\Entity\Error;
 
-
 /**
  * Utility is a class that supports GoodsController's class methods
  *
  * @author dezio
  */
 class Utility {
-    
-    
+
     const BAD_JSON = "BAD_JSON";
     const BAD_QUERY = "BAD_QUERY";
-    
+
     /**
      * This method returns a serializer used to parse and serialize
      * json objects.
@@ -34,8 +32,7 @@ class Utility {
         $normalizer = array(new ObjectNormalizer());
         return new Serializer($normalizer, $encoder);
     }
-    
-    
+
     /**
      * This method creates a response using the Symfony serializer to turn 
      * input goods into json format: the output will be the body of the response
@@ -45,12 +42,11 @@ class Utility {
     public static function createOkResponse($request, $goods) {
 
         $json = Utility::getSerializer()->serialize($goods, 'json');
-        $response = new Response($json, Response::HTTP_OK, 
-                array("Content-type" => "application/json"));
+        $response = new Response($json, Response::HTTP_OK, array("Content-type" => "application/json"));
         $response->prepare($request);
         return $response;
     }
-    
+
     /**
      * This function sends an Http 400 Bad Format Response, adding a json object
      * to specify the kind of error happened, in order to give more explanation
@@ -59,14 +55,13 @@ class Utility {
      * @return Symfony\Component\HttpFoundation\JsonResponse $response
      */
     public static function createBadFormatResponse($request, $error) {
-        
+
         $json = Utility::getSerializer()->serialize($error, "json");
-        $response = new Response($json, Response::HTTP_BAD_REQUEST,
-                array("Content-type" => "application/json"));
-        $response -> prepare($request);
+        $response = new Response($json, Response::HTTP_BAD_REQUEST, array("Content-type" => "application/json"));
+        $response->prepare($request);
         return $response;
     }
-    
+
     /**
      * This method returns the number of goods.
      * @param type $em
@@ -80,13 +75,13 @@ class Utility {
                 . 'FROM AppBundle:Good g');
         return $count = $query->getResult();
     }
-    
+
     /**
      * Return all goods in the database
      * @param Doctrine\ORM\EntityManager $em
      */
     public static function getAllGoods($em) {
-        $goods = $em -> getRepository('AppBundle:Good') -> findAll();
+        $goods = $em->getRepository('AppBundle:Good')->findAll();
         return $goods;
     }
 
@@ -100,21 +95,20 @@ class Utility {
      * params are not correct
      * @throws HttpException
      */
-    public static function orderedGoods($em, $field, $order) {
-        
+    public static function orderedGoods($em, $field, $order = null) {
+
         //If the order param is null, than we order asc mode by 
         // default
-        if(is_null($order)) {
+        if (is_null($order)) {
             $order = "asc";
             $isOrderValid = true;
         } else {
             $isOrderValid = Utility::validateOrder($order);
         }
         $isFieldValid = Utility::validateField($em, $field);
-        if(!$isOrderValid || !$isFieldValid) {
+        if (!$isOrderValid || !$isFieldValid) {
             //if the params aren't valid, we have to send an error 
-            $error = new Error(Utility::BAD_QUERY,
-                "Invalid ".$field."value in research query","");
+            $error = new Error(Utility::BAD_QUERY, "Invalid " . $field . "value in research query", "");
             return $error;
         }
         $count = Utility::countGoods($em);
@@ -161,50 +155,47 @@ class Utility {
      * @return Array $goods if it is all correct, Error $error if the query
      * params are not correct
      */
-    public static function searchForGoods($em, $field, $value, $order = null) {
-        
+    public static function searchForGoods($em, $field, $value, $order) {
+
         //If the order param is null, than we order asc mode by 
         // default
+        if($order == null) {
+            $order = "asc";
+        }
         $isOrderValid = Utility::validateOrder($order);
         $isFieldValid = Utility::validateField($em, $field);
-        if($isFieldValid) {
+        if ($isFieldValid) {
             $isValueValid = Utility::validateValue($field, $value);
         }
-        if(!$isFieldValid || !$isValueValid) {
-            //if the value is not valid, we have to send an error 
-            $error = new Error(Utility::BAD_QUERY,
-                "Invalid ".$field."value in research query","");
+        if (!$isFieldValid || !$isValueValid) {
+            //if the value/field is not valid, we have to send an error 
+            $error = new Error(Utility::BAD_QUERY, "Invalid field/value query params!", "");
             return $error;
         }
-        $queryBuilder = $em -> createQueryBuilder();
-        $queryBuilder -> select (array('p'))
-                          -> from('AppBundle:Good', 'p');
+        $queryBuilder = $em->createQueryBuilder();
+        $queryBuilder->select(array('p'))
+                ->from('AppBundle:Good', 'p');
         //Preparing the field value for the query
-        if($field == "description") {
-            $value = "'%".$value."%'";
+        if ($field == "description") {
+            $value = "'%" . $value . "%'";
         } else {
-            $value = "'".$value."'";
+            $value = "'" . $value . "'";
         }
-        $queryBuilder -> where(
-                            $queryBuilder -> expr() -> like('p.'.$field, $value)
-                              );
-        if($isOrderValid || is_null($order)) {
-            if($isOrderValid)
-                $queryBuilder-> orderBy('p.'.$field, $order);
-            //PER IL MOMENTO FUNZIONA MA VEDERE SE SI TROVA UNA SOL PIU'
-            //ELEGANTE A MENTE FRESCA
-            $query = $queryBuilder -> getQuery();
-            $goods = $query -> getResult();
+        $queryBuilder->where(
+                $queryBuilder->expr()->like('p.' . $field, $value)
+        );
+        if ($isOrderValid) {
+            $queryBuilder->orderBy('p.' . $field, $order);
+            $query = $queryBuilder->getQuery();
+            $goods = $query->getResult();
             return $goods;
         } else {
             //if the value is not valid, we have to send an error 
-            $error = new Error(Utility::BAD_QUERY,
-                "Invalid ".$field."value in research query","");
+            $error = new Error(Utility::BAD_QUERY, "Invalid " . $field . "value in research query", "");
             return $error;
         }
-        
     }
-    
+
     /**
      * This method validates a field, represented as a string,
      * for the good entity.
@@ -214,15 +205,14 @@ class Utility {
      */
     public static function validateField($em, $field) {
         $result = false;
-        if(is_string($field)) {
+        if (is_string($field)) {
             $properFields = $em->getClassMetaData("AppBundle:Good")
-                ->getColumnNames();
-            $result =  in_array($field, $properFields);
+                    ->getColumnNames();
+            $result = in_array($field, $properFields);
         }
         return $result;
-        
     }
-    
+
     /**
      * This methods validates a value, given its field, 
      * for the good entity
@@ -231,7 +221,7 @@ class Utility {
      * @return bool $result
      */
     public static function validateValue($field, $value) {
-        
+
         $result = false;
         switch ($field) {
             case "description":
@@ -247,10 +237,8 @@ class Utility {
                 $result = Utility::validatePrice($value);
         }
         return $result;
-       
     }
-    
-   
+
     /**
      * This method validates the description field value used in searching
      * @param type $value as the description value
@@ -258,13 +246,12 @@ class Utility {
      * @throws HttpException
      */
     public static function validateDescription($value) {
-        
-         if(is_string($value)) {
-             return (strlen($value) <= 25);
-         }
-         else {
-             return false;
-         }
+
+        if (is_string($value)) {
+            return (strlen($value) <= 25);
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -276,9 +263,9 @@ class Utility {
     public static function validateId($value) {
 
         $result = false;
-        if(is_numeric($value)) {
+        if (is_numeric($value)) {
             $numericValue = $value + 0;
-            if (is_int($numericValue) && $numericValue >= 0) { 
+            if (is_int($numericValue) && $numericValue >= 0) {
                 $result = strlen((string) $value) <= 11;
             }
         }
@@ -292,11 +279,11 @@ class Utility {
      * false otherwise
      */
     public static function validateQuantity($value) {
-        
+
         $result = false;
-        if(is_numeric($value)) {
+        if (is_numeric($value)) {
             $numericValue = $value + 0;
-            if (is_int($numericValue) && $numericValue >= 0) { 
+            if (is_int($numericValue) && $numericValue >= 0) {
                 $result = strlen((string) $value) <= 11;
             }
         }
@@ -310,29 +297,29 @@ class Utility {
      * @return boolean $result
      */
     public static function validatePrice($value) {
-        if(is_numeric($value)) {
+        if (is_numeric($value)) {
             //I make a conversion in case the input is a string
             //and return true if is positive
             return ($value + 0 > 0);
         }
     }
-    
-    
+
     /**
      * This method validates the order query-param value: the only
      * values accepted are "asc" and "desc", case insensitive
      * @param string $ord
      * @return boolean $result
      */
-    public static function validateOrder($ord){
-        
+    public static function validateOrder($ord) {
+
         $result = false;
-        if(is_string($ord)){
-        $order = strtolower($ord);
-            if($order == "asc" || $order=="desc"){
+        if (is_string($ord)) {
+            $order = strtolower($ord);
+            if ($order == "asc" || $order == "desc") {
                 $result = true;
             }
         }
         return $result;
     }
+
 }

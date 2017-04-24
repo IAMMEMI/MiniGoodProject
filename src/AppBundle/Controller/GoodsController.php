@@ -38,6 +38,8 @@ class GoodsController extends Controller {
         $field = $parameters->get("field");
         $order = $parameters->get("order");
         $value = $parameters->get("value");
+        //We can use is_null because the variable is already declared
+        //isset can be used also for unknown variables
         if (is_null($value) && !is_null($field)) {
             //if value is null then we have to order goods
             $result = Utility::orderedGoods($em, $field, $order);

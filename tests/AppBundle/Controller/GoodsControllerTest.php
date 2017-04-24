@@ -374,14 +374,15 @@ class GoodsControllerTest extends WebTestCase
     /**
      * This test tests that the validation actually works, sending a wrong json
      * object
+     * @dataProvider badGoodDataProvider
      */
-    public function testBadInsertGood()
+    public function testBadInsertGood($json)
     {
         $client = static::createClient();
         $count = \AppBundle\Utility::countGoods($this->em);
-        $client -> request('POST','/goods',array(), array(), array("CONTENT_TYPE" => "application/json"),
-	'{"description":"this description is much longer than 25 characters,'
-                . ' yes i know, really really bad", "quantity": 45.5, "price": 2.6}');
+        $client -> request('POST','/goods',array(), array(), 
+                array("CONTENT_TYPE" => "application/json"),
+                $json);
         $response = $client -> getResponse();
         $this->assertEquals(400, $response ->getStatusCode());
         $this->assertTrue(
@@ -428,16 +429,18 @@ class GoodsControllerTest extends WebTestCase
     /**
      * This test tests the validation of the object also for the "PATCH"
      * request, and tests that the error response is correct.
+     * @dataProvider badGoodDataProvider
      */
-    public function testBadPutGood() 
+    public function testBadPutGood($json) 
     {
         $client = static::createClient();
         $client->request('GET','/goods/1');
         $response1=$client->getResponse()->getContent();
         //the quantity value is not correct, the validation will fail.
         $client -> request('PUT','/goods/1',
-                array(), array(), array("CONTENT_TYPE" => "application/json"),
-	'{"description":"modificato2", "quantity": 45.8, "price": 2.6}');
+                array(), array(),
+                array("CONTENT_TYPE" => "application/json"),
+                $json);
         $response = $client -> getResponse();
       
         //Here we check the response error.
@@ -462,6 +465,26 @@ class GoodsControllerTest extends WebTestCase
         $response2=$client->getResponse()->getContent();
         $this->assertTrue($response1==$response2, 
                 "Error! the good was modified anyway!");
-    }  
+    }
+    
+    public function badGoodDataProvider() {
+        
+        return array(
+            array(
+                '{"description":"modificato2", '
+                . '"quantity": 45.8, '
+                . '"price": 2.6}'),
+            array('{"description":"modificato2", '
+                . '"quantity": 45, '
+                . '"price": -2.6}'),
+            array('{"description":"modificato2", '
+                . '"quantity": -45, '
+                . '"price": 2.6}'),
+            array('{"description":"modificatoLungoLungoLungoLungoLungo", '
+                . '"quantity": 45.8, '
+                . '"price": 2.6}'),
+        );
+        
+    }
     
 }
