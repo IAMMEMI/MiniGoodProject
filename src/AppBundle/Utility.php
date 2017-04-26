@@ -328,10 +328,10 @@ class Utility {
     public function onKernelException(GetResponseForExceptionEvent $event) {
         // You get the exception object from the received event
         $exception = $event->getException();
-        
+       
         $request = $event->getRequest();
         // Send the modified response object to the event
-        $event->setResponse(Utility::createBadFormatResponse($request, new Error(Utility::BAD_SERVER, $exception->getCode(), $exception->getMessage())));
+        $event->setResponse(Utility::createBadFormatResponse($request, new Error(Utility::BAD_SERVER, "Errore generato dal server", $exception->getMessage())));
         
         
 
