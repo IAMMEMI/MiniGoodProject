@@ -23,7 +23,7 @@ class Error {
      * @var string
      * @Assert\Choice(
      *    choices = {"BAD_JSON",
-     *       "BAD_QUERY"}
+     *       "BAD_QUERY","BAD_SERVER"}
      *    message = "Choose a valid type."
      * )
      * @Assert\NotBlank()
