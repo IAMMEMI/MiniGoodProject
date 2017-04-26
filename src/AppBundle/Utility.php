@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use AppBundle\Entity\Error;
 
+use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 /**
  * Utility is a class that supports GoodsController's class methods
  *
@@ -21,6 +23,7 @@ class Utility {
 
     const BAD_JSON = "BAD_JSON";
     const BAD_QUERY = "BAD_QUERY";
+    const BAD_SERVER = "BAD_SERVER";
 
     /**
      * This method returns a serializer used to parse and serialize
@@ -321,5 +324,16 @@ class Utility {
         }
         return $result;
     }
+    
+    public function onKernelException(GetResponseForExceptionEvent $event) {
+        // You get the exception object from the received event
+        $exception = $event->getException();
+        
+        $request = $event->getRequest();
+        // Send the modified response object to the event
+        $event->setResponse(Utility::createBadFormatResponse($request, new Error(Utility::BAD_SERVER, $exception->getCode(), $exception->getMessage())));
+        
+        
 
+    }
 }
