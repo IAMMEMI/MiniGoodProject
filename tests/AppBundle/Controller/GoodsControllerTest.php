@@ -38,11 +38,12 @@ class GoodsControllerTest extends WebTestCase
     /**
      * This test tests the content type of the data sent back by the server:
      * it must be application/json
+     * @dataProvider testContentTypeUrlProvider
      */
-    public function testContentType()
+    public function testContentType($method, $url)
     {
         $client = static::createClient();
-        $crawler = $client->request('GET', '/goods');
+        $crawler = $client->request($method, $url);
         
         $this->assertTrue(
         $client->getResponse()->headers->contains(
@@ -51,6 +52,30 @@ class GoodsControllerTest extends WebTestCase
         ),
         'non è "application/json"');
     }
+    
+    /**
+     * It's the data provider of the testContentType functional test,
+     * it use some hardcoded id, like 1, but the test will not fail 
+     * because we're testing the content-type of the response
+     * @return array $data
+     */
+    public function testContentTypeUrlProvider() {
+        
+        return array(
+            array('GET','/goods'),
+            //Not existing root
+            array('GET','/efijefije'),
+            //Wrong query - the id is hard-coded, 
+            //but it's a temporary solution
+            array('GET','/goods/1?field=beer'),
+            array('POST','/goods'),
+            array('POST','/efijefije'),
+            array('PUT','/efijefije'),
+            array('PUT','/goods/'),
+            array('DELETE','/efijefije'),
+            array('DELETE','/goods/2000'),
+        );
+    }
 
     /**
      * This test assert that a request 'GET' on the root /goods 
@@ -58,8 +83,8 @@ class GoodsControllerTest extends WebTestCase
      */
     public function testGetGoods()
     {
-        //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
-        //Dobbiamo poi fare il parsing dal json.
+        //We make a get request and then extract the json from the response,
+        //parsing it
         $client = static::createClient();
         $client->request('GET', '/goods');
         $responseTest = $client -> getResponse();
@@ -71,8 +96,8 @@ class GoodsControllerTest extends WebTestCase
         $ex) {
              $this->fail("Failed to parse json content!") ; 
         }
-        //Facciamo poi una query diretta al database e assicuriamo che
-        //siano gli stessi che ci ritornano la risposta
+        //Then we make a direct query to the db, and we assure that
+        //the objects are the same from the get request.
         $goods = $this->em->getRepository('AppBundle:Good')->findAll();
         $this->assertTrue($testGoods==$goods,"Goods aren't the same!");   
     }
@@ -82,8 +107,9 @@ class GoodsControllerTest extends WebTestCase
      * @dataProvider orderedGoodsInputProvider
      */
     public function testOrderedGoods($field, $order = null) {
-        //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
-        //Dobbiamo poi fare il parsing dal json.
+        
+        //We make a get request and then extract the json from the response,
+        //parsing it
         $client = static::createClient();
         $queryString = '/goods?field='.$field;
         if(!is_null($order)) {
@@ -100,9 +126,9 @@ class GoodsControllerTest extends WebTestCase
         $ex) {
              $this->fail("Failed to parse json content!") ; 
         }
-        //Facciamo poi una query diretta al database e assicuriamo che
-        //siano gli stessi che ci ritornano la risposta, nello stesso ordine
-       $query = $this->em
+        //Then we make a direct query to the db, and we assure that
+        //the objects are the same from the get request, in the same order
+        $query = $this->em
                     ->getRepository('AppBundle:Good')
                     ->createQueryBuilder('g')
                     ->orderBy('g.'.$field, $order)
