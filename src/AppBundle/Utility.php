@@ -3,17 +3,12 @@
 namespace AppBundle;
 
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use AppBundle\Entity\Error;
 
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 /**
  * Utility is a class that supports GoodsController's class methods
  *
@@ -23,7 +18,8 @@ class Utility {
 
     const BAD_JSON = "BAD_JSON";
     const BAD_QUERY = "BAD_QUERY";
-    const BAD_SERVER = "BAD_SERVER";
+    const DB_ERROR = "DB_ERROR";
+    const SERVER_ERROR = "SERVER_ERROR";
 
     /**
      * This method returns a serializer used to parse and serialize
@@ -57,10 +53,10 @@ class Utility {
      * @param AppBundle\Error $error
      * @return Symfony\Component\HttpFoundation\JsonResponse $response
      */
-    public static function createBadFormatResponse($request, $error) {
+    public static function createErrorResponse($request,$error,$status_code) {
 
         $json = Utility::getSerializer()->serialize($error, "json");
-        $response = new Response($json, Response::HTTP_BAD_REQUEST, array("Content-type" => "application/json"));
+        $response = new Response($json, $status_code, array("Content-type" => "application/json"));
         $response->prepare($request);
         return $response;
     }
@@ -325,15 +321,4 @@ class Utility {
         return $result;
     }
     
-    public function onKernelException(GetResponseForExceptionEvent $event) {
-        // You get the exception object from the received event
-        $exception = $event->getException();
-       
-        $request = $event->getRequest();
-        // Send the modified response object to the event
-        $event->setResponse(Utility::createBadFormatResponse($request, new Error(Utility::BAD_SERVER, "Errore generato dal server", $exception->getMessage())));
-        
-        
-
-    }
 }

@@ -51,7 +51,7 @@ class GoodsController extends Controller {
             $result = Utility::getAllGoods($em);
         }
         if (!is_array($result) && get_class($result) == Error::class) {
-            return Utility::createBadFormatResponse($request, $result);
+            return Utility::createErrorResponse($request, $result, Response::HTTP_BAD_REQUEST);
         }
         return Utility::createOkResponse($request, $result);
     }
@@ -78,7 +78,7 @@ class GoodsController extends Controller {
             return Utility::createOkResponse($request, $good);
         } else {
             $error = new Error(Utility::BAD_QUERY, "No valid " . $id . " value", "id must be an integer, max 11 digits");
-            return Utility::createBadFormatResponse($request, $error);
+            return Utility::createErrorResponse($request, $error, Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -95,29 +95,29 @@ class GoodsController extends Controller {
     public function postGoodsAction(Request $request) {
 
         $jsonGood = $request->getContent();
+        $validator = $this->get("validator");
         try {
             $newGood = Utility::getSerializer()->deserialize(
                     $jsonGood, 'AppBundle\Entity\Good', "json");
         } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
         $ex) {
             $error = new Error(Utility::BAD_JSON, "Error parsing json object!", $ex->getMessage());
-            return Utility::createBadFormatResponse($request, $error);
+            return Utility::createErrorResponse($request, $error, Response::HTTP_BAD_REQUEST);
         }
 
         //Here we're validating the new object, using assertions
         //from the annotations of Good entity
-        $validator = $this->get("validator");
         $errors = $validator->validate($newGood);
         if (count($errors) > 0) {
             $error = new Error(Utility::BAD_JSON, "Error validating json object!", (string) $errors);
-            return Utility::createBadFormatResponse($request, $error);
+            return Utility::createErrorResponse($request, $error, Response::HTTP_BAD_REQUEST);
         }
 
         //This control is for the id, because it is auto-generated and can't
         //be specified by the client
         if ($newGood->getId() != null) {
             $error = new Error(Utility::BAD_JSON, "Error validating json object!", "id field is auto-generated!");
-            return Utility::createBadFormatResponse($request, $error);
+            return Utility::createErrorResponse($request, $error, Response::HTTP_BAD_REQUEST);
         }
 
         $em = $this->getDoctrine()->getManager();
@@ -144,13 +144,13 @@ class GoodsController extends Controller {
         } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
         $ex) {
             $error = new Error(Utility::BAD_JSON, "Error parsing json object!", $ex->getMessage());
-            return Utility::createBadFormatResponse($request, $error);
+            return Utility::createErrorResponse($request, $error, Response::HTTP_BAD_REQUEST);
         }
         //This control is for the id, because it is auto-generated and can't
         //be specified by the client
         if ($newGood->getId() != null) {
             $error = new Error(Utility::BAD_JSON, "Error validating json object!", "id field is auto-generated!");
-            return Utility::createBadFormatResponse($request, $error);
+            return Utility::createErrorResponse($request, $error, Response::HTTP_BAD_REQUEST);
         }
         //Here we're validating the new object, using assertions
         //from the annotations of Good entity
@@ -158,7 +158,7 @@ class GoodsController extends Controller {
         $errors = $validator->validate($newGood);
         if (count($errors) > 0) {
             $error = new Error(Utility::BAD_JSON, "Error validating json object!", (string) $errors);
-            return Utility::createBadFormatResponse($request, $error);
+            return Utility::createErrorResponse($request, $error,  Response::HTTP_BAD_REQUEST);
         }
 
         $em = $this->getDoctrine()->getManager();
@@ -199,7 +199,7 @@ class GoodsController extends Controller {
             return $response;
         } else {
             $error = new Error(Utility::BAD_QUERY, "No valid " . $id . " value", "id must be an integer, max 11 digits");
-            return Utility::createBadFormatResponse($request, $error);
+            return Utility::createErrorResponse($request, $error,  Response::HTTP_BAD_REQUEST);
         }
     }
 

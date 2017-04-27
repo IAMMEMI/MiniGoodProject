@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * This class represents an error, that will be parsed as
- * json in the 400 HttpResponse if an error is present.
+ * json in the HttpResponse if an error is present.
  *
  * @author dezio
  */
@@ -21,11 +21,6 @@ class Error {
     /**
      *
      * @var string
-     * @Assert\Choice(
-     *    choices = {"BAD_JSON",
-     *       "BAD_QUERY","BAD_SERVER"}
-     *    message = "Choose a valid type."
-     * )
      * @Assert\NotBlank()
      * 
      */
@@ -131,6 +126,36 @@ class Error {
         
         $this -> message = $message;
         return $this;
+        
+    }
+    
+    /**
+     * This function validate the type property
+     * @Assert\Callback
+     * @param \AppBundle\Entity\ExecutionContextInterface $context
+     * @param type $payload
+     */
+    public function validate(ExecutionContextInterface $context, $payload)
+    {
+        $permittedTypes = array(\AppBundle\Utility::BAD_JSON,
+            \AppBundle\Utility::BAD_QUERY,
+            \AppBundle\Utility::DB_ERROR,
+            \AppBundle\Utility::SERVER_ERROR
+        );
+        //Controlling that the type is one of the permitted types,
+        //or a status code
+        if(in_array($this -> type, $permittedTypes)) {
+            return;
+        } else {
+            if(!preg_match("/(0-9)(0-9)(0-9)/", $this -> type)) {
+                $context->buildViolation('The type must be one of the '
+                        . 'permitted ones, or a status code!')
+                ->atPath('type')
+                ->addViolation();
+            }
+            return;
+        }
+        
         
     }
     
