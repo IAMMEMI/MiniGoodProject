@@ -113,7 +113,7 @@ class GoodsControllerTest extends WebTestCase
         $client = static::createClient();
         $queryString = '/goods?field='.$field;
         if(!is_null($order)) {
-            $queryString .="&&order=".$order;
+            $queryString .="&order=".$order;
         }
         $client->request('GET', $queryString);
         
@@ -153,7 +153,7 @@ class GoodsControllerTest extends WebTestCase
         $client = static::createClient();
         $queryString = '/goods?field='.$field;
         if(!is_null($order)) {
-            $queryString .="&&order=".$order;
+            $queryString .="&order=".$order;
         }
         $client->request('GET', $queryString);
         
@@ -176,7 +176,7 @@ class GoodsControllerTest extends WebTestCase
      * the testSearchGoods
      * @return array $data
      */
-    public function badQueriesorderedGoodsInputProvider() {
+    public function badQueriesOrderedGoodsInputProvider() {
         
          return array(
             array("beer","asc"),
@@ -221,7 +221,7 @@ class GoodsControllerTest extends WebTestCase
         $client = static::createClient();
         $requestURL = '/goods?field='.$field.'&&value='.$value;
         if($order != null) {
-            $requestURL .= '&&order='.$order;
+            $requestURL .= '&order='.$order;
         }
         $client->request('GET', $requestURL);
         $responseTest = $client -> getResponse();
@@ -285,7 +285,7 @@ class GoodsControllerTest extends WebTestCase
         $client = static::createClient();
         $requestURL = '/goods?field='.$field.'&&value='.$value;
         if($order != null) {
-            $requestURL .= '&&order='.$order;
+            $requestURL .= '&order='.$order;
         }
         $client->request('GET', $requestURL);
         $responseTest = $client -> getResponse();
