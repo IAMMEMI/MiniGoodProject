@@ -18,42 +18,54 @@ class ExceptionListener
     {
         // You get the exception object from the received event
         $exception = $event->getException();
+        // creating a message with infos of the event
         $message = sprintf(
             'My Error says: %s with code: %s',
             $exception->getMessage(),
             $exception->getCode()
         );
         $title = "Exception occured";
+        // get the request from the event
         $request = $event -> getRequest();
 
-        // HttpExceptionInterface is a special type of exception that
-        // holds status code and header details           
+        // is the exception due to pdo or db?
+        // in both case we have a DB_ERROR, with a 500 http status code
         if ($exception instanceof \PDOException ||
                 $exception instanceof DBException) {
             $type = \AppBundle\Utility::DB_ERROR;
             $status_code = Response::HTTP_INTERNAL_SERVER_ERROR;
+            // we create the error 
             $error = new \AppBundle\Entity\Error($type, $title, $message);
+            // we create the response containing infos of the error
             $response = \AppBundle\Utility::createErrorResponse($request, 
                         $error, 
                         $status_code);
         } else {
+            //the error is not caused by the database, so let's do something else
             
+            // HttpExceptionInterface is a special type of exception that
+            // holds status code and header details     
             if($exception instanceof HttpExceptionInterface) {
                 $status_code = $exception -> getStatusCode();
             } else {
+                //if the exception is not an instance of HttpExceptionInterface,
+                // I have not a status code so we set it with the 500 
                 $status_code = Response::HTTP_INTERNAL_SERVER_ERROR;
             }
             $type = $status_code;
+            // if the status code is 500, the type of error is a SERVER_ERROR
             if($status_code == Response::HTTP_INTERNAL_SERVER_ERROR) {
                 $type = \AppBundle\Utility::SERVER_ERROR;
             }
+            // let's create the error
             $error = new \AppBundle\Entity\Error($type, $title, $message);
+            // we create the response containing infos of the error
             $response = \AppBundle\Utility::createErrorResponse($request, 
                         $error, 
                         $status_code);
         }
 
-        // Send the modified response object to the event
+        // let's send the response 
         $event->setResponse($response);
     }
 }
