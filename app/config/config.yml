@@ -68,7 +68,9 @@ nelmio_cors:
         allow_headers: ['*']
     paths:
         '^/goods':
-            allow_methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH']
+            allow_methods: ['GET', 'POST']
+        '^/goods/id':
+            allow_methods: ['GET', 'PUT', 'DELETE']
            
 
 
