@@ -68,10 +68,7 @@ nelmio_cors:
         allow_headers: ['*']
     paths:
         '^/goods':
-            allow_methods: ['GET', 'POST']
-        '^/goods/id':
-            allow_methods: ['GET', 'PUT', 'DELETE']
-           
+            allow_methods: ['GET', 'POST', 'PUT', 'DELETE','OPTIONS']
 
 
 # Swiftmailer Configuration
