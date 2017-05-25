@@ -20,6 +20,3 @@ How to run
 	password: admin
 * php bin/console doctrine:schema:update --force to create "goods" table inside the db
 * php bin/console server:run to run the php built-in server
-=======
-Mini-project sui good aggiornato.
-
