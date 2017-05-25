@@ -1,4 +1,4 @@
-mini_project 1.1
+mini_project 1.2
 ============
 First project to learn symfony framework, using a goods table with CRUD operations
 
@@ -20,3 +20,6 @@ How to run
 	password: admin
 * php bin/console doctrine:schema:update --force to create "goods" table inside the db
 * php bin/console server:run to run the php built-in server
+=======
+Mini-project sui good aggiornato.
+
