@@ -42,18 +42,31 @@ class GoodsController extends Controller {
         
         //We can use is_null because the variable is already declared
         //isset can be used also for unknown variables
-        if (is_null($value) && !is_null($coloumn)) {
+        
+        //field + valore --> ricerca in quel campo
+        //coloumn --> ordina in base a quel campo
+        //field + valore + coloumn --> ricerca + ordinamento 
+        
+        //ho solo la colonna --> ORDINAMENTO
+        //tutti gli altri devono essere nulli altrimenti qualcosa non va
+        if (!is_null($coloumn) && is_null($field) && is_null($value)) {
             //if value is null then we have to order goods
             $result = Utility::orderedGoods($em, $coloumn, $order);
-        } else if (!is_null($value) && !is_null($field)) {
+        } 
+        //ho un valore ed un campo, devo fare la ricerca per quel campo
+        else if (!is_null($value) && !is_null($field)) {
             //if we have a value then we have to do the research                
             //let's do the research
+            //qui specifico che se ho la colonna di ordinamento nulla, 
+            //ordino in base al campo di ricerca
             if (is_null($coloumn)) {
                 $coloumn = $field;
             }
             
             $result = Utility::searchForGoods($em, $field, $value, $order, $coloumn);
-        } else {
+        } 
+        //non ho nessun campo quindi prendo tutto e invio al client
+        else {
             $result = Utility::getAllGoods($em);
         }
         if (!is_array($result) && get_class($result) == Error::class) {
