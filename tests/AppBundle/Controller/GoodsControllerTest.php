@@ -106,12 +106,12 @@ class GoodsControllerTest extends WebTestCase
      * This test asserts the correctness of the order function
      * @dataProvider orderedGoodsInputProvider
      */
-    public function testOrderedGoods($field, $order = null) {
+    public function testOrderedGoods($coloumn, $order = null) {
         
         //We make a get request and then extract the json from the response,
         //parsing it
         $client = static::createClient();
-        $queryString = '/goods?field='.$field;
+        $queryString = '/goods?coloumn='.$coloumn;
         if(!is_null($order)) {
             $queryString .="&order=".$order;
         }
@@ -131,7 +131,7 @@ class GoodsControllerTest extends WebTestCase
         $query = $this->em
                     ->getRepository('AppBundle:Good')
                     ->createQueryBuilder('g')
-                    ->orderBy('g.'.$field, $order)
+                    ->orderBy('g.'.$coloumn, $order)
                     ->getQuery();
         $goods = $query->getResult();
         $sameOrder = true;
@@ -147,11 +147,11 @@ class GoodsControllerTest extends WebTestCase
      * This test asserts the correctness of the order function
      * @dataProvider badQueriesOrderedGoodsInputProvider
      */
-    public function testBadQueriesOrderedGoods($field, $order = null) {
+    public function testBadQueriesOrderedGoods($coloumn, $order = null) {
         //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
         //Dobbiamo poi fare il parsing dal json.
         $client = static::createClient();
-        $queryString = '/goods?field='.$field;
+        $queryString = '/goods?coloumn='.$coloumn;
         if(!is_null($order)) {
             $queryString .="&order=".$order;
         }
@@ -321,6 +321,117 @@ class GoodsControllerTest extends WebTestCase
         );
     }
     
+    /**
+     * This function is used as a dataProvider for
+     * the testSearchGoods
+     * @return array $data
+     */
+    public function searchForGoodsOrderedInputProvider() {
+        return array(
+            array("description","prova","price"),
+            array("price",2.6,"description"),
+            array("quantity", 40, "price"),
+            array("id",5,"description"),
+            array("description","prova","quantity"),
+            array("description","prova","quantity","desc"),
+        );
+         
+    }
+    
+   
+    /**
+     * This test asserts the correctness of the search function
+     * @dataProvider searchForGoodsOrderedInputProvider
+     */
+    public function testSearchGoodsOrdered($field, $value, $coloumn, $order = null) {
+        
+        //We need to do a get request in order to extract
+        //the response from the controller,
+        //then we parse the json inside.
+        $client = static::createClient();
+        $requestURL = '/goods?field='.$field.'&value='.$value.'&coloumn='.$coloumn;
+        if($order != null) {
+            $requestURL .= '&order='.$order;
+        }
+        $client->request('GET', $requestURL);
+        $responseTest = $client -> getResponse();
+        $jsonGood = $responseTest->getContent();
+        try {
+            $testGoods = $this->serializer->deserialize(
+                    $jsonGood, 'AppBundle\Entity\Good[]', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $queryBuilder = $this -> em -> createQueryBuilder();
+        $queryBuilder -> select (array('p'))
+                          -> from('AppBundle:Good', 'p');
+        //Preparing the field value for the query
+        if($field == "description") {
+            $value = "'%".$value."%'";
+        } else {
+            $value = "'".$value."'";
+        }
+        $queryBuilder -> where(
+                            $queryBuilder -> expr() -> like('p.'.$field, $value)
+                              );
+        if(!is_null($order)) {
+            $queryBuilder-> orderBy('p.'.$field, $order);
+        } elseif(is_null($order)){
+           
+            $queryBuilder->orderBy('p.'.$coloumn,$order);
+        }
+        $query = $queryBuilder -> getQuery();
+        $goods = $query -> getResult();
+
+        $this->assertTrue($testGoods==$goods,"Goods aren't the same!");
+        
+    }
+    
+     /**
+     * This function is used as a dataProvider for
+     * the testSearchGoods
+     * @return array $data
+     */
+    public function badSearchForGoodsOrderedInputProvider() {         
+         
+         return array(
+            array("description","prova","lalala"),
+            array("price",2.6,""),
+            array("quantity", 4000000000000000000000000000000000000000, "hello" ),
+            array("ide",5,"description"),
+            array("descrizzzzzz","prova","quantity"),
+            array("id","prova","quantity","desc"),
+        );
+    }
+    
+    /**
+     * This test asserts the correctness of the search function
+     * @dataProvider badSearchForGoodsOrderedInputProvider
+     */
+    public function testBadQueriesSearchForOrderedGoods($field, $value,$coloumn, $order = null) {
+        
+        //We need to do a get request in order to extract
+        //the response from the controller,
+        //then we parse the json inside.
+        $client = static::createClient();
+        $requestURL = '/goods?field='.$field.'&value='.$value.'&coloumn='.$coloumn;
+        if($order != null) {
+            $requestURL .= '&order='.$order;
+        }
+        $client->request('GET', $requestURL);
+        $responseTest = $client -> getResponse();
+        $jsonGood = $responseTest->getContent();
+        try {
+            $testError = $this->serializer->deserialize(
+                    $jsonGood, 'AppBundle\Entity\Error', "json");
+        } catch (Symfony\Component\Serializer\Exception\UnexpectedValueException
+        $ex) {
+             $this->fail("Failed to parse json content!") ; 
+        }
+        $this -> assertTrue($testError -> getType() 
+                == \AppBundle\Utility::BAD_QUERY);
+    }
     
     
 
