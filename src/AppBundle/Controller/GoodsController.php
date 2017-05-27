@@ -38,15 +38,21 @@ class GoodsController extends Controller {
         $field = $parameters->get("field");
         $order = $parameters->get("order");
         $value = $parameters->get("value");
+        $coloumn = $parameters->get("coloumn");
+        
         //We can use is_null because the variable is already declared
         //isset can be used also for unknown variables
-        if (is_null($value) && !is_null($field)) {
+        if (is_null($value) && !is_null($coloumn)) {
             //if value is null then we have to order goods
-            $result = Utility::orderedGoods($em, $field, $order);
+            $result = Utility::orderedGoods($em, $coloumn, $order);
         } else if (!is_null($value) && !is_null($field)) {
             //if we have a value then we have to do the research                
             //let's do the research
-            $result = Utility::searchForGoods($em, $field, $value, $order);
+            if (is_null($coloumn)) {
+                $coloumn = $field;
+            }
+            
+            $result = Utility::searchForGoods($em, $field, $value, $order, $coloumn);
         } else {
             $result = Utility::getAllGoods($em);
         }

@@ -151,10 +151,11 @@ class Utility {
      * @param Doctrine\ORM\EntityManager $em
      * @param type $field
      * @param type $value
+     * @param type $coloumn
      * @return Array $goods if it is all correct, Error $error if the query
      * params are not correct
      */
-    public static function searchForGoods($em, $field, $value, $order) {
+    public static function searchForGoods($em, $field, $value, $order, $coloumn) {
 
         //If the order param is null, than we order asc mode by 
         // default
@@ -163,6 +164,7 @@ class Utility {
         }
         $isOrderValid = Utility::validateOrder($order);
         $isFieldValid = Utility::validateField($em, $field);
+        $isColoumnValid = Utility::validateField($em, $coloumn);
         if ($isFieldValid) {
             $isValueValid = Utility::validateValue($field, $value);
         }
@@ -183,14 +185,14 @@ class Utility {
         $queryBuilder->where(
                 $queryBuilder->expr()->like('p.' . $field, $value)
         );
-        if ($isOrderValid) {
-            $queryBuilder->orderBy('p.' . $field, $order);
+        if ($isOrderValid && $isColoumnValid) {
+            $queryBuilder->orderBy('p.' . $coloumn, $order);
             $query = $queryBuilder->getQuery();
             $goods = $query->getResult();
             return $goods;
         } else {
             //if the value is not valid, we have to send an error 
-            $error = new Error(Utility::BAD_QUERY, "Invalid " . $field . "value in research query", "");
+            $error = new Error(Utility::BAD_QUERY, "Invalid " . $coloumn . " or " . $order . " value in research query", "");
             return $error;
         }
     }
