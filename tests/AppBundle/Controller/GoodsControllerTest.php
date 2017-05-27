@@ -323,7 +323,7 @@ class GoodsControllerTest extends WebTestCase
     
     /**
      * This function is used as a dataProvider for
-     * the testSearchGoods
+     * the testSearchGoodsOrdered
      * @return array $data
      */
     public function searchForGoodsOrderedInputProvider() {
@@ -390,7 +390,7 @@ class GoodsControllerTest extends WebTestCase
     
      /**
      * This function is used as a dataProvider for
-     * the testSearchGoods
+     * the testBadQueriesSearchForGoodsOrderedGoods
      * @return array $data
      */
     public function badSearchForGoodsOrderedInputProvider() {         
