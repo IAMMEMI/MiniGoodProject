@@ -59,9 +59,9 @@ class Good
 
     /**
      * It's the unitary price of the good.
-     * @var float
+     * @var numeric
      * @Assert\Type(
-     *  type="float",
+     *  type="numeric",
      *  message="price must be a float"
      * )
      * @Assert\NotNull()
@@ -69,7 +69,7 @@ class Good
      *    min = 0.01,
      *    minMessage = "There is no free good!"
      * )
-     * @ORM\Column(name="price", type="float")
+     * @ORM\Column(name="price", type="decimal", scale=2)
      */
     private $price;
 

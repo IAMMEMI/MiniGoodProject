@@ -437,17 +437,17 @@ class GoodsControllerTest extends WebTestCase
     {
         $client = static::createClient();
         //I take the object to modify
-        $client->request('GET','/goods/1');
+        $client->request('GET','/goods/3');
         $response1=$client->getResponse()->getContent();
         //We need a random function, because otherwise the test will fail
         //the second time we modify the same object.
         $randomModify = rand();
-        $client -> request('PUT','/goods/1',
+        $client -> request('PUT','/goods/3',
                 array(), array(), array("CONTENT_TYPE" => "application/json"),
-	'{"description":"modificato'.$randomModify.'", "quantity": 45, "price": 2.6}');
+	'{"description":"modificato'.$randomModify.'", "quantity": 45, "price": 2}');
         $response = $client -> getResponse();
         $this->assertEquals(200, $response ->getStatusCode());
-        $client->request('GET','/goods/1');
+        $client->request('GET','/goods/3');
         $response2=$client->getResponse()->getContent();
         $this->assertTrue($response1!=$response2, "Error! Good not modified!");
     }
