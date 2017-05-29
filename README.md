@@ -35,12 +35,12 @@ PARAMETER  |VALUE|Accepted Value|
 **Query Param** |field|id, description, quantity, price;| 
 ||order|asc, desc;|
 ||value|**id and quantity**: *any int value greater than zero, max 11 digits*; **description**: *any string value, max 25 chars*; **price**: *any double value, greater than zero*;|
-|**Accepted QueryStrings**|?coloumn=*fieldname*|All goods ordered by the specified coloumn. The order is ascending by default.|
-||?coloumn=*fieldname*&order=*ordervalue*|All goods ordered by the fieldname, ordered in *ordervalue* mode if they are more than 20.|
+|**Accepted QueryStrings**|?column=*fieldname*|All goods ordered by the specified column. The order is ascending by default.|
+||?column=*fieldname*&order=*ordervalue*|All goods ordered by the fieldname, ordered in *ordervalue* mode if they are more than 20.|
 ||?field=*fieldname*&value=*fieldvalue*|All goods having the specified value in the specified field. The order is ascending by id.|
 ||?field=*fieldname*&value=*fieldvalue*&order=*ordervalue*|All goods having the specified value in the specified field, ordered by the fieldname, ordered in *ordervalue* mode if they are more than 20.|
-||?field=*fieldname*&value=*fieldname*&coloumn=*fieldname*|All goods having the specified value in the specified field, ordered by *fieldname* specified in coloumn, ordered in ascending mode if they are more than 20.|
-||?field=*fieldname*&value=*fieldname*&order=*ordervalue*&coloumn=*fieldname*|All goods having the specified value in the specified field, ordered by *fieldname* specified in coloumn, ordered in *ordervalue* mode if they are more than 20.|
+||?field=*fieldname*&value=*fieldname*&column=*fieldname*|All goods having the specified value in the specified field, ordered by *fieldname* specified in column, ordered in ascending mode if they are more than 20.|
+||?field=*fieldname*&value=*fieldname*&order=*ordervalue*&column=*fieldname*|All goods having the specified value in the specified field, ordered by *fieldname* specified in column, ordered in *ordervalue* mode if they are more than 20.|
 
 **Method**  |GET|
 
@@ -48,9 +48,9 @@ PARAMETER  |VALUE|Accepted Value|
 URL  |RESULT|
 --:|--|
 |/goods|All goods in the database, sorted in ascending order by id.
-|/goods?coloumn=price|All goods in the database, sorted in ascending order by price.|
-|/goods?order=desc&coloumn=quantity|All goods sorted in descending order according to the quantity field.|
+|/goods?column=price|All goods in the database, sorted in ascending order by price.|
+|/goods?order=desc&column=quantity|All goods sorted in descending order according to the quantity field.|
 |/goods?field=description&value=prova|All goods that contains the string "prova" in the description field, sorted in ascending order by id.|
 |/goods?field=description&value=prova&order=desc|All goods that contains "prova" in the description field, ordered by description in descending mode.|
-|/goods?field=description&value=prova&coloumn=price|All goods that contains "prova" in the description field, ordered by price in ascending mode.|
-|/goods?field=description&value=prova&coloumn=price&order=desc|All goods that contains "prova" in the description field, ordered by price in descending mode.|
+|/goods?field=description&value=prova&column=price|All goods that contains "prova" in the description field, ordered by price in ascending mode.|
+|/goods?field=description&value=prova&column=price&order=desc|All goods that contains "prova" in the description field, ordered by price in descending mode.|

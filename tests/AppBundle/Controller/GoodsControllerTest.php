@@ -106,12 +106,12 @@ class GoodsControllerTest extends WebTestCase
      * This test asserts the correctness of the order function
      * @dataProvider orderedGoodsInputProvider
      */
-    public function testOrderedGoods($coloumn, $order = null) {
+    public function testOrderedGoods($column, $order = null) {
         
         //We make a get request and then extract the json from the response,
         //parsing it
         $client = static::createClient();
-        $queryString = '/goods?coloumn='.$coloumn;
+        $queryString = '/goods?column='.$column;
         if(!is_null($order)) {
             $queryString .="&order=".$order;
         }
@@ -131,7 +131,7 @@ class GoodsControllerTest extends WebTestCase
         $query = $this->em
                     ->getRepository('AppBundle:Good')
                     ->createQueryBuilder('g')
-                    ->orderBy('g.'.$coloumn, $order)
+                    ->orderBy('g.'.$column, $order)
                     ->getQuery();
         $goods = $query->getResult();
         $sameOrder = true;
@@ -142,16 +142,38 @@ class GoodsControllerTest extends WebTestCase
         }
         $this->assertTrue($sameOrder,"Wrong ordination!");
     }
+     /**
+     * This function is used as a dataProvider for
+     * the testOrderedGoods
+     * @return array $data
+     */
+    public function orderedGoodsInputProvider() {
+        
+         return array(
+            array("description","asc"),
+            array("description"),
+            array("description","desc"),
+            array("quantity", "asc"),
+            array("quantity","desc"),
+            array("quantity"),
+            array("id", "asc"),
+            array("id", "desc"),
+            array("id"),
+            array("price","asc"),
+            array("price", "desc"),
+            array("price"),
+        );
+    }
     
     /**
      * This test asserts the correctness of the order function
      * @dataProvider badQueriesOrderedGoodsInputProvider
      */
-    public function testBadQueriesOrderedGoods($coloumn, $order = null) {
+    public function testBadQueriesOrderedGoods($column, $order = null) {
         //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
         //Dobbiamo poi fare il parsing dal json.
         $client = static::createClient();
-        $queryString = '/goods?coloumn='.$coloumn;
+        $queryString = '/goods?column='.$column;
         if(!is_null($order)) {
             $queryString .="&order=".$order;
         }
@@ -173,7 +195,7 @@ class GoodsControllerTest extends WebTestCase
     
      /**
      * This function is used as a dataProvider for
-     * the testSearchGoods
+     * the testBadQueriesOrderedSearchGoods
      * @return array $data
      */
     public function badQueriesOrderedGoodsInputProvider() {
@@ -186,28 +208,7 @@ class GoodsControllerTest extends WebTestCase
         );
     }
     
-     /**
-     * This function is used as a dataProvider for
-     * the testSearchGoods
-     * @return array $data
-     */
-    public function orderedGoodsInputProvider() {
-        
-         return array(
-            array("description","asc"),
-            array("description"),
-            array("description","desc"),
-            array("quantity", "asc"),
-            array("quantity","desc"),
-            array("quantity"),
-            array("id", "asc"),
-            array("id", "desc"),
-            array("id"),
-            array("price","asc"),
-            array("price", "desc"),
-            array("price"),
-        );
-    }
+    
     
     /**
      * This test asserts the correctness of the search function
@@ -343,13 +344,13 @@ class GoodsControllerTest extends WebTestCase
      * This test asserts the correctness of the search function
      * @dataProvider searchForGoodsOrderedInputProvider
      */
-    public function testSearchGoodsOrdered($field, $value, $coloumn, $order = null) {
+    public function testSearchGoodsOrdered($field, $value, $column, $order = null) {
         
         //We need to do a get request in order to extract
         //the response from the controller,
         //then we parse the json inside.
         $client = static::createClient();
-        $requestURL = '/goods?field='.$field.'&value='.$value.'&coloumn='.$coloumn;
+        $requestURL = '/goods?field='.$field.'&value='.$value.'&column='.$column;
         if($order != null) {
             $requestURL .= '&order='.$order;
         }
@@ -379,7 +380,7 @@ class GoodsControllerTest extends WebTestCase
             $queryBuilder-> orderBy('p.'.$field, $order);
         } elseif(is_null($order)){
            
-            $queryBuilder->orderBy('p.'.$coloumn,$order);
+            $queryBuilder->orderBy('p.'.$column,$order);
         }
         $query = $queryBuilder -> getQuery();
         $goods = $query -> getResult();
@@ -409,13 +410,13 @@ class GoodsControllerTest extends WebTestCase
      * This test asserts the correctness of the search function
      * @dataProvider badSearchForGoodsOrderedInputProvider
      */
-    public function testBadQueriesSearchForOrderedGoods($field, $value,$coloumn, $order = null) {
+    public function testBadQueriesSearchForOrderedGoods($field, $value,$column, $order = null) {
         
         //We need to do a get request in order to extract
         //the response from the controller,
         //then we parse the json inside.
         $client = static::createClient();
-        $requestURL = '/goods?field='.$field.'&value='.$value.'&coloumn='.$coloumn;
+        $requestURL = '/goods?field='.$field.'&value='.$value.'&column='.$column;
         if($order != null) {
             $requestURL .= '&order='.$order;
         }

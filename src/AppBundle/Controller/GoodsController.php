@@ -38,34 +38,27 @@ class GoodsController extends Controller {
         $field = $parameters->get("field");
         $order = $parameters->get("order");
         $value = $parameters->get("value");
-        $coloumn = $parameters->get("coloumn");
+        $column = $parameters->get("column");
         
         //We can use is_null because the variable is already declared
         //isset can be used also for unknown variables
         
-        //field + valore --> ricerca in quel campo
-        //coloumn --> ordina in base a quel campo
-        //field + valore + coloumn --> ricerca + ordinamento 
-        
-        //ho solo la colonna --> ORDINAMENTO
-        //tutti gli altri devono essere nulli altrimenti qualcosa non va
-        if (!is_null($coloumn) && is_null($field) && is_null($value)) {
-            //if value is null then we have to order goods
-            $result = Utility::orderedGoods($em, $coloumn, $order);
+        //I only have column field, so I have to order by that specified column.
+        //I need other fields to be empty         
+        if (!is_null($column) && is_null($field) && is_null($value)) {
+            $result = Utility::orderedGoods($em, $column, $order);
         } 
-        //ho un valore ed un campo, devo fare la ricerca per quel campo
+        //I have a value and a field, so I have to research that value in that field
         else if (!is_null($value) && !is_null($field)) {
-            //if we have a value then we have to do the research                
-            //let's do the research
-            //qui specifico che se ho la colonna di ordinamento nulla, 
-            //ordino in base al campo di ricerca
-            if (is_null($coloumn)) {
-                $coloumn = $field;
+            //If the column for the order is not specified, 
+            //I order the results in base of the research field
+            if (is_null($column)) {
+                $column = $field;
             }
             
-            $result = Utility::searchForGoods($em, $field, $value, $order, $coloumn);
+            $result = Utility::searchForGoods($em, $field, $value, $order, $column);
         } 
-        //non ho nessun campo quindi prendo tutto e invio al client
+        //I have no fields, so let's take all 
         else {
             $result = Utility::getAllGoods($em);
         }
