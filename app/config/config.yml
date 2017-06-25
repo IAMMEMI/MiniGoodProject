@@ -94,3 +94,8 @@ swiftmailer:
 #FOSRest Configuration
 fos_rest:
   routing_loader:
+#JWTRefresh configuration
+gesdinet_jwt_refresh_token:
+    firewall: main
+    ttl_update: true
+    user_provider: fos_user.user_provider.username

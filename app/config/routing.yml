@@ -9,6 +9,6 @@ goods:
    host: localhost
 fos_user:
     resource: '@FOSUserBundle/Resources/config/routing/all.xml'
-#gesdinet_jwt_refresh_token:
-#    path:     /token/refresh
-#    defaults: { _controller: gesdinet.jwtrefreshtoken:refresh }
+gesdinet_jwt_refresh_token:
+    path:     /token/refresh
+    defaults: { _controller: gesdinet.jwtrefreshtoken:refresh }
