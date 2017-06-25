@@ -18,6 +18,10 @@ class ExceptionListener
     {
         // You get the exception object from the received event
         $exception = $event->getException();
+        //In this case, the event will be handled by JWTAuthBundle
+        if($exception->getCode() === 403) {
+            return;
+        }
         // creating a message with infos of the event
         $message = sprintf(
             'My Error says: %s with code: %s',

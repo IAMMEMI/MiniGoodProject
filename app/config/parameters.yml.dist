@@ -24,8 +24,8 @@ parameters:
     timezone: Europe/Rome
 
     #private-public keys
-    jwt_private_key_path: '%kernel.root_dir%/var/jwt/private.pem'
-    jwt_public_key_path: '%kernel.root_dir%/var/jwt/public.pem'
+    jwt_private_key_path: '%kernel.project_dir%/var/jwt/private.pem'
+    jwt_public_key_path: '%kernel.project_dir%/var/jwt/public.pem'
     jwt_key_pass_phrase: admin
     jwt_token_ttl: 3600
 

@@ -17,6 +17,8 @@ class GoodsControllerTest extends WebTestCase
      */
     private $em;
     private $serializer;
+    private $validUsername;
+    private $validPassword;
 
     /**
      * {@inheritDoc}
@@ -33,6 +35,33 @@ class GoodsControllerTest extends WebTestCase
         $normalizer = array(new GetSetMethodNormalizer(),
             new ArrayDenormalizer());
         $this->serializer = new Serializer($normalizer, $encoder);
+        $this->validUsername = "testUser1";
+        $this->validPassword = "testPass1";
+    }
+    
+    /**
+     * 
+     * @return \Symfony\Bundle\FrameworkBundle\Client
+     */
+    public function createAuthenticatedClient() {
+
+        //We send our first request, 
+        //in order to take the token for the first time
+        $client = static::createClient();
+        $client->request(
+                'POST', '/login_check', array(
+            '_username' => $this -> validUsername,
+            '_password' => $this -> validPassword,
+                )
+        );
+        $data = json_decode($client->getResponse()->getContent(), true);
+        //We re-create the client with the proper token
+        $client = static::createClient();
+        $client->setServerParameter('HTTP_Authorization', sprintf('Bearer %s', 
+                $data['token']));
+        $client ->setServerParameter('TEST_NEED', $data['refresh_token']);
+       
+        return $client;
     }
     
     /**
@@ -42,7 +71,7 @@ class GoodsControllerTest extends WebTestCase
      */
     public function testContentType($method, $url)
     {
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $crawler = $client->request($method, $url);
         
         $this->assertTrue(
@@ -85,7 +114,7 @@ class GoodsControllerTest extends WebTestCase
     {
         //We make a get request and then extract the json from the response,
         //parsing it
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $client->request('GET', '/goods');
         $responseTest = $client -> getResponse();
         $jsonGood = $responseTest->getContent();
@@ -110,7 +139,7 @@ class GoodsControllerTest extends WebTestCase
         
         //We make a get request and then extract the json from the response,
         //parsing it
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $queryString = '/goods?column='.$column;
         if(!is_null($order)) {
             $queryString .="&order=".$order;
@@ -172,7 +201,7 @@ class GoodsControllerTest extends WebTestCase
     public function testBadQueriesOrderedGoods($column, $order = null) {
         //Facciamo una richiesta di get ed estraiamo i goods dalla risposta.
         //Dobbiamo poi fare il parsing dal json.
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $queryString = '/goods?column='.$column;
         if(!is_null($order)) {
             $queryString .="&order=".$order;
@@ -219,7 +248,7 @@ class GoodsControllerTest extends WebTestCase
         //We need to do a get request in order to extract
         //the response from the controller,
         //then we parse the json inside.
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $requestURL = '/goods?field='.$field.'&&value='.$value;
         if($order != null) {
             $requestURL .= '&order='.$order;
@@ -283,7 +312,7 @@ class GoodsControllerTest extends WebTestCase
         //We need to do a get request in order to extract
         //the response from the controller,
         //then we parse the json inside.
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $requestURL = '/goods?field='.$field.'&&value='.$value;
         if($order != null) {
             $requestURL .= '&order='.$order;
@@ -349,7 +378,7 @@ class GoodsControllerTest extends WebTestCase
         //We need to do a get request in order to extract
         //the response from the controller,
         //then we parse the json inside.
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $requestURL = '/goods?field='.$field.'&value='.$value.'&column='.$column;
         if($order != null) {
             $requestURL .= '&order='.$order;
@@ -415,7 +444,7 @@ class GoodsControllerTest extends WebTestCase
         //We need to do a get request in order to extract
         //the response from the controller,
         //then we parse the json inside.
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $requestURL = '/goods?field='.$field.'&value='.$value.'&column='.$column;
         if($order != null) {
             $requestURL .= '&order='.$order;
@@ -445,7 +474,7 @@ class GoodsControllerTest extends WebTestCase
     {   
         //We create a client and then we get the maximum id on the db
         //in order to get the last good inserted.
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $query = $this->em-> createQuery("SELECT MAX(g.id) "
                 . "from AppBundle:Good g"
                 );
@@ -477,7 +506,7 @@ class GoodsControllerTest extends WebTestCase
      */
      public function testInsertGood()
     {
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $count = \AppBundle\Utility::countGoods($this -> em);
         $client -> request('POST','/goods',array(), array(), array("CONTENT_TYPE" => "application/json"),
 	'{"description":"prova3", "quantity": 40, "price": 2.6}');
@@ -493,7 +522,7 @@ class GoodsControllerTest extends WebTestCase
     public function testDeleteGood() 
     {
         //This test is valid only once
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $query = $this->em-> createQuery("SELECT MAX(g.id) "
                 . "from AppBundle:Good g"
                 );
@@ -516,7 +545,7 @@ class GoodsControllerTest extends WebTestCase
      */
     public function testBadInsertGood($json)
     {
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $count = \AppBundle\Utility::countGoods($this->em);
         $client -> request('POST','/goods',array(), array(), 
                 array("CONTENT_TYPE" => "application/json"),
@@ -547,7 +576,7 @@ class GoodsControllerTest extends WebTestCase
      */
     public function testPutGood() 
     {
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         //I take the object to modify
         $client->request('GET','/goods/3');
         $response1=$client->getResponse()->getContent();
@@ -571,7 +600,7 @@ class GoodsControllerTest extends WebTestCase
      */
     public function testBadPutGood($json) 
     {
-        $client = static::createClient();
+        $client = $this->createAuthenticatedClient();
         $client->request('GET','/goods/1');
         $response1=$client->getResponse()->getContent();
         //the quantity value is not correct, the validation will fail.
