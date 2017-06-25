@@ -38,7 +38,7 @@ class GoodsControllerTest extends WebTestCase
     /**
      * This test tests the content type of the data sent back by the server:
      * it must be application/json
-     * @dataProvider testContentTypeUrlProvider
+     * @dataProvider contentTypeUrlProvider
      */
     public function testContentType($method, $url)
     {
@@ -59,7 +59,7 @@ class GoodsControllerTest extends WebTestCase
      * because we're testing the content-type of the response
      * @return array $data
      */
-    public function testContentTypeUrlProvider() {
+    public function contentTypeUrlProvider() {
         
         return array(
             array('GET','/goods'),
