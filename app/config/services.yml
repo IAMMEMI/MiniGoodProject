@@ -11,3 +11,12 @@ services:
          class: AppBundle\Listener\ExceptionListener
          tags: 
              - { name: kernel.event_listener, event: kernel.exception}
+     app.login_attempt_listener:
+        class: AppBundle\Listener\LoginAttemptListener
+        autowire: true
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, priority: 10 }
+       
+     app.login_attempt_handler:
+        class: AppBundle\Services\LoginAttemptHandler
+        arguments: ['@service_container', '@doctrine.orm.entity_manager', '%login_attempt_minutes%', '%max_login_attempts%']
