@@ -28,3 +28,4 @@ parameters:
     jwt_public_key_path: '%kernel.root_dir%/var/jwt/public.pem'
     jwt_key_pass_phrase: admin
     jwt_token_ttl: 3600
+
