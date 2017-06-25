@@ -38,16 +38,28 @@ class GoodsController extends Controller {
         $field = $parameters->get("field");
         $order = $parameters->get("order");
         $value = $parameters->get("value");
+        $column = $parameters->get("column");
+        
         //We can use is_null because the variable is already declared
         //isset can be used also for unknown variables
-        if (is_null($value) && !is_null($field)) {
-            //if value is null then we have to order goods
-            $result = Utility::orderedGoods($em, $field, $order);
-        } else if (!is_null($value) && !is_null($field)) {
-            //if we have a value then we have to do the research                
-            //let's do the research
-            $result = Utility::searchForGoods($em, $field, $value, $order);
-        } else {
+        
+        //I only have column field, so I have to order by that specified column.
+        //I need other fields to be empty         
+        if (!is_null($column) && is_null($field) && is_null($value)) {
+            $result = Utility::orderedGoods($em, $column, $order);
+        } 
+        //I have a value and a field, so I have to research that value in that field
+        else if (!is_null($value) && !is_null($field)) {
+            //If the column for the order is not specified, 
+            //I order the results in base of the research field
+            if (is_null($column)) {
+                $column = $field;
+            }
+            
+            $result = Utility::searchForGoods($em, $field, $value, $order, $column);
+        } 
+        //I have no fields, so let's take all 
+        else {
             $result = Utility::getAllGoods($em);
         }
         if (!is_array($result) && get_class($result) == Error::class) {
