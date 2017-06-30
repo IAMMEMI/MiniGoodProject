@@ -23,10 +23,10 @@ How to run
 
 Generate the SSH keys :
 ------------------------
-*```mkdir -p var/jwt``` 
-*```openssl genrsa -out var/jwt/private.pem -aes256 4096```
-*```openssl rsa -pubout -in var/jwt/private.pem -out var/jwt/public.pem```
+* ```mkdir -p var/jwt``` 
+* ```openssl genrsa -out var/jwt/private.pem -aes256 4096```
+* ```openssl rsa -pubout -in var/jwt/private.pem -out var/jwt/public.pem```
 
 Create a user:
 ------------------------
-*```php bin/console fos:user:create```
+* ```php bin/console fos:user:create```
