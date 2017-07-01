@@ -5,7 +5,8 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * LoginAttempt
+ * LoginAttempt is the entity that store information about a login attempt. If
+ * failed, it will be store to the db and used as a reference to block attempts
  *
  * @ORM\Table(name="login_attempt")
  * @ORM\Entity(repositoryClass="AppBundle\Repository\LoginAttemptRepository")
@@ -22,6 +23,7 @@ class LoginAttempt
     private $id;
 
     /**
+     * The source ip of the login attempt
      * @var string
      *
      * @ORM\Column(name="ip_addr", type="string", length=500, nullable=true)
@@ -29,6 +31,7 @@ class LoginAttempt
     private $ipAddr;
 
     /**
+     * The User Agent (browser) originating the attempt 
      * @var string
      *
      * @ORM\Column(name="user_agent", type="string", length=500, nullable=true)
@@ -36,6 +39,7 @@ class LoginAttempt
     private $userAgent;
 
     /**
+     * The moment in which the attempt is made
      * @var \DateTime
      *
      * @ORM\Column(name="login_timestamp", type="datetime", nullable=true)
