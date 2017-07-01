@@ -18,7 +18,7 @@ How to run
 * Create a new account with all privileges on Miniproject
 	username: MiniprojectAdmin
 	password: admin
-* ```php bin/console doctrine:schema:update --force``` to create "goods" table inside the db
+* ```php bin/console doctrine:schema:update --force``` to create "goods" table inside the db.
 * ```php bin/console server:run``` to run the php built-in server
 
 Generate the SSH keys :
@@ -27,6 +27,8 @@ Generate the SSH keys :
 * ```openssl genrsa -out var/jwt/private.pem -aes256 4096```
 * ```openssl rsa -pubout -in var/jwt/private.pem -out var/jwt/public.pem```
 
+the passphrase is **admin**. 
+
 Create a user:
 ------------------------
-* ```php bin/console fos:user:create```
+* ```php bin/console fos:user:create``` it will ask you a user and a password. Then you will be able to to Login.

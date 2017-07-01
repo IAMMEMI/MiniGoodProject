@@ -33,7 +33,6 @@ class SecurityTest extends WebTestCase {
      * @return \Symfony\Bundle\FrameworkBundle\Client
      */
     private function createAuthenticatedClient() {
-
         //We send our first request, 
         //in order to take the token for the first time
         $client = static::createClient();
@@ -44,8 +43,10 @@ class SecurityTest extends WebTestCase {
                 )
         );
         $data = json_decode($client->getResponse()->getContent(), true);
+            
         //We re-create the client with the proper token
         $client = static::createClient();
+        var_dump(strlen($data['token']));
         $client->setServerParameter('HTTP_Authorization', sprintf('Bearer %s', 
                 $data['token']));
         $client ->setServerParameter('TEST_NEED', $data['refresh_token']);
