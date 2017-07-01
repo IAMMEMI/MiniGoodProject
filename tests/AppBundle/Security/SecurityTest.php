@@ -43,10 +43,8 @@ class SecurityTest extends WebTestCase {
                 )
         );
         $data = json_decode($client->getResponse()->getContent(), true);
-            
         //We re-create the client with the proper token
         $client = static::createClient();
-        var_dump(strlen($data['token']));
         $client->setServerParameter('HTTP_Authorization', sprintf('Bearer %s', 
                 $data['token']));
         $client ->setServerParameter('TEST_NEED', $data['refresh_token']);
