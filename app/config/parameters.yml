@@ -8,7 +8,7 @@ parameters:
     mailer_transport: smtp
     mailer_host: 127.0.0.1
     mailer_user: dezio95.ld@gmail.com
-    mailer_password: Ciaociao1
+    mailer_password: admin
     secret: ThisTokenIsNotSoSecretChangeIt
     login_attempt_minutes: 1
     max_login_attempts: 3

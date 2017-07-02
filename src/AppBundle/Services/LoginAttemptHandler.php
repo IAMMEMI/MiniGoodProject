@@ -30,6 +30,7 @@ class LoginAttemptHandler {
      * @param \Doctrine\ORM\EntityManager $em
      */
     public function __construct(ContainerInterface $container, EntityManager $em, $login_attempt_minutes = 1, $max_login_attempts = 3) {
+
         $this->container = $container;
         $this->em = $em;
         $this->max_login_attempts = $max_login_attempts;
@@ -50,25 +51,15 @@ class LoginAttemptHandler {
      * @throws \Exception
      */
     public function log(Request $request) {
-        try {
 
-            $now = new \DateTime();
-            $now->setTimezone(new \DateTimeZone($this->container->getParameter('timezone')));
-            $loginAttempt = new LoginAttempt();
-            $loginAttempt->setIpAddr($request->getClientIp());
-            $loginAttempt->setUserAgent($request->headers->get('User-Agent'));
-            $loginAttempt->setLoginTimestamp($now);
-            $this->em->persist($loginAttempt);
-            $this->em->flush();
-            /* $conn = $this->em->getConnection();
-              $conn->insert('login_attempt', [
-              'ip_addr' => $request->getClientIp(),
-              'user_agent' => $request->headers->get('User-Agent'),
-              'login_timestamp' => $now->format('Y-m-d H:i:s')
-              ]); */
-        } catch (\Exception $e) {
-            throw $e;
-        }
+        $now = new \DateTime();
+        $now->setTimezone(new \DateTimeZone("UTC"));
+        $loginAttempt = new LoginAttempt();
+        $loginAttempt->setIpAddr($request->getClientIp());
+        $loginAttempt->setUserAgent($request->headers->get('User-Agent'));
+        $loginAttempt->setLoginTimestamp($now);
+        $this->em->persist($loginAttempt);
+        $this->em->flush();
     }
 
     /**
@@ -78,20 +69,12 @@ class LoginAttemptHandler {
      * @throws \Exception
      */
     public function clear(Request $request) {
-        try {
-            $loginAttempts = $this->get($request);
-            foreach ($loginAttempts as $loginAttempt) {
-                $this->em->remove($loginAttempt);
-            }
-            $this->em->flush();
-            //$sql = "DELETE FROM login_attempt WHERE ip_addr = :ip_addr";
-            //$params = array('ip_addr' => $request->getClientIp());
-            //$stmt   = $this->em->getConnection()->prepare($sql);
-            //$stmt->execute($params);
-        } catch (\Exception $e) {
-            //The exception will be handled by the listener
-            throw $e;
+
+        $loginAttempts = $this->get($request);
+        foreach ($loginAttempts as $loginAttempt) {
+            $this->em->remove($loginAttempt);
         }
+        $this->em->flush();
     }
 
     /**
@@ -102,22 +85,11 @@ class LoginAttemptHandler {
      * @throws \Exception
      */
     public function get(Request $request) {
-        try {
 
-            /* $conn = $this->em->getConnection();
-              $sql = 'SELECT * FROM login_attempt WHERE ip_addr = :ip_addr';
-              $params = array('ip_addr' => $request->getClientIp());
-              $stmt = $conn->prepare($sql);
-              $stmt->execute($params);
-              $attempts = $stmt->fetchAll(); */
-            $actualIpAddr = $request->getClientIp();
-            $attempts = $this->em->getRepository("AppBundle:LoginAttempt")
-                    ->findBy(array('ipAddr' => $actualIpAddr));
-            return $attempts;
-        } catch (\Exception $e) {
-            //The exception will be handled by the listener
-            throw $e;
-        }
+        $actualIpAddr = $request->getClientIp();
+        $attempts = $this->em->getRepository("AppBundle:LoginAttempt")
+                ->findBy(array('ipAddr' => $actualIpAddr));
+        return $attempts;
     }
 
     /**
@@ -128,21 +100,20 @@ class LoginAttemptHandler {
      * @throws \Exception
      */
     public function getLockoutMinutes(array $attempts = array()) {
-        try {
 
-            $now = new \DateTime();
-            $now->setTimezone(new \DateTimeZone($this->container->getParameter('timezone')));
-            $minutes = 0;
-            if(!empty($attempts)) {
-                $lastAttempt = $attempts[sizeof($attempts) - 1];
-                $loginAttemptTime = $lastAttempt -> getLoginTimeStamp();
-                $interval = $now->diff($loginAttemptTime);
-                $minutes = $interval->format('%i');
-            }
-            return $minutes;
-        } catch (\Exception $e) {
-            throw $e;
+        $now = new \DateTime();
+        $timezone = $this->container->getParameter("timezone");
+        $now->setTimezone(new \DateTimeZone($timezone));
+        $minutes = 0;
+        if (!empty($attempts)) {
+            $lastAttempt = $attempts[sizeof($attempts) - 1];
+            $loginAttemptTime = $lastAttempt->getLoginTimeStamp();
+            $loginAttemptTime->setTimezone(
+                    new \DateTimeZone($timezone));
+            $interval = $now->diff($loginAttemptTime);
+            $minutes = $interval->format('%i');
         }
+        return $minutes;
     }
 
     /**
@@ -153,15 +124,10 @@ class LoginAttemptHandler {
      * @throws \Exception
      */
     public function lock(Request $request) {
-        try {
 
-            $attempts = $this->get($request);
-            $minutes = $this->getLockoutMinutes($attempts);
-                return (count($attempts) >= $this->max_login_attempts 
-                        && $minutes <= $this->login_attempt_minutes) ? true : false;
-        } catch (\Exception $e) {
-            throw $e;
-        }
+        $attempts = $this->get($request);
+        $minutes = $this->getLockoutMinutes($attempts);
+        return (count($attempts) >= $this->max_login_attempts && $minutes <= $this->login_attempt_minutes) ? true : false;
     }
 
     /**
@@ -172,16 +138,10 @@ class LoginAttemptHandler {
      * @throws \Exception
      */
     public function unlock(Request $request) {
-        try {
 
-            $attempts = $this->get($request);
-            $minutes = $this->getLockoutMinutes($attempts);
-            return (count($attempts) >= $this->max_login_attempts 
-                    && $minutes > $this->login_attempt_minutes) ? true : false;
-        } catch (\Exception $e) {
-            throw $e;
-        }
+        $attempts = $this->get($request);
+        $minutes = $this->getLockoutMinutes($attempts);
+        return (count($attempts) >= $this->max_login_attempts && $minutes > $this->login_attempt_minutes) ? true : false;
     }
-    
 
 }

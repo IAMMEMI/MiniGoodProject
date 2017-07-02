@@ -38,7 +38,7 @@ class LoginAttemptListener {
             $username = $request->request->get('_username');
             $password = $request->request->get('_password');
             if ($this->loginAttemptHandler->lock($request)) {
-               $this->blockLogin($event);
+                $this->blockLogin($event);
             } else if ($this->loginAttemptHandler->unlock($request)) {
                 $this->loginAttemptHandler->clear($request);
             }
@@ -55,19 +55,18 @@ class LoginAttemptListener {
             return;
         }
     }
-    
+
     /**
      * Block the login if the handler is locked
      * @param \Symfony\Component\HttpKernel\Event\GetResponseEvent $event
      */
     private function blockLogin($event) {
-        
+
         $event->stopPropagation();
         $response = new JWTAuthenticationFailureResponse(sprintf(
-            'You have reached the maximum number of login attempts.'
-            . ' Please try again in %s minutes.', 1), 401);
+                        'You have reached the maximum number of login attempts.'
+                        . ' Please try again in %s minutes.', 1), 401);
         $event->setResponse($response);
-        
     }
 
 }

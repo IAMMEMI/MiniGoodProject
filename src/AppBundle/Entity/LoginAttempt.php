@@ -11,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Table(name="login_attempt")
  * @ORM\Entity(repositoryClass="AppBundle\Repository\LoginAttemptRepository")
  */
-class LoginAttempt
-{
+class LoginAttempt {
+
     /**
      * @var int
      *
@@ -46,14 +46,12 @@ class LoginAttempt
      */
     private $loginTimestamp;
 
-
     /**
      * Get id
      *
      * @return int
      */
-    public function getId()
-    {
+    public function getId() {
         return $this->id;
     }
 
@@ -64,8 +62,7 @@ class LoginAttempt
      *
      * @return LoginAttempt
      */
-    public function setIpAddr($ipAddr)
-    {
+    public function setIpAddr($ipAddr) {
         $this->ipAddr = $ipAddr;
 
         return $this;
@@ -76,8 +73,7 @@ class LoginAttempt
      *
      * @return string
      */
-    public function getIpAddr()
-    {
+    public function getIpAddr() {
         return $this->ipAddr;
     }
 
@@ -88,8 +84,7 @@ class LoginAttempt
      *
      * @return LoginAttempt
      */
-    public function setUserAgent($userAgent)
-    {
+    public function setUserAgent($userAgent) {
         $this->userAgent = $userAgent;
 
         return $this;
@@ -100,8 +95,7 @@ class LoginAttempt
      *
      * @return string
      */
-    public function getUserAgent()
-    {
+    public function getUserAgent() {
         return $this->userAgent;
     }
 
@@ -112,8 +106,7 @@ class LoginAttempt
      *
      * @return LoginAttempt
      */
-    public function setLoginTimestamp($loginTimestamp)
-    {
+    public function setLoginTimestamp($loginTimestamp) {
         $this->loginTimestamp = $loginTimestamp;
 
         return $this;
@@ -124,9 +117,9 @@ class LoginAttempt
      *
      * @return \DateTime
      */
-    public function getLoginTimestamp()
-    {
+    public function getLoginTimestamp() {
+
         return $this->loginTimestamp;
     }
-}
 
+}

@@ -3,9 +3,6 @@
 namespace AppBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,15 +36,14 @@ class GoodsController extends Controller {
         $order = $parameters->get("order");
         $value = $parameters->get("value");
         $column = $parameters->get("column");
-        
+
         //We can use is_null because the variable is already declared
         //isset can be used also for unknown variables
-        
         //I only have column field, so I have to order by that specified column.
         //I need other fields to be empty         
         if (!is_null($column) && is_null($field) && is_null($value)) {
             $result = Utility::orderedGoods($em, $column, $order);
-        } 
+        }
         //I have a value and a field, so I have to research that value in that field
         else if (!is_null($value) && !is_null($field)) {
             //If the column for the order is not specified, 
@@ -55,9 +51,9 @@ class GoodsController extends Controller {
             if (is_null($column)) {
                 $column = $field;
             }
-            
+
             $result = Utility::searchForGoods($em, $field, $value, $order, $column);
-        } 
+        }
         //I have no fields, so let's take all 
         else {
             $result = Utility::getAllGoods($em);
@@ -170,7 +166,7 @@ class GoodsController extends Controller {
         $errors = $validator->validate($newGood);
         if (count($errors) > 0) {
             $error = new Error(Utility::BAD_JSON, "Error validating json object!", (string) $errors);
-            return Utility::createErrorResponse($request, $error,  Response::HTTP_BAD_REQUEST);
+            return Utility::createErrorResponse($request, $error, Response::HTTP_BAD_REQUEST);
         }
 
         $em = $this->getDoctrine()->getManager();
@@ -211,7 +207,7 @@ class GoodsController extends Controller {
             return $response;
         } else {
             $error = new Error(Utility::BAD_QUERY, "No valid " . $id . " value", "id must be an integer, max 11 digits");
-            return Utility::createErrorResponse($request, $error,  Response::HTTP_BAD_REQUEST);
+            return Utility::createErrorResponse($request, $error, Response::HTTP_BAD_REQUEST);
         }
     }
 
