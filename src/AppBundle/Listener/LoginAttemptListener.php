@@ -47,8 +47,13 @@ class LoginAttemptListener {
             // because the login is successful
             $userManager = $container->get("fos_user.user_manager");
             $user = $userManager->findUserByUsername($username);
-            if (!$container->get("security.password_encoder")->isPasswordValid($user, $password)) {
+            if($user==null) {
                 $this->loginAttemptHandler->log($request);
+                 $this->wrongLogin($event);
+            }
+            else if (!$container->get("security.password_encoder")->isPasswordValid($user, $password)) {
+                $this->loginAttemptHandler->log($request);
+                 $this->wrongLogin($event);
             } else {
                 $this->loginAttemptHandler->clear($request);
             }
@@ -66,6 +71,17 @@ class LoginAttemptListener {
         $response = new JWTAuthenticationFailureResponse(sprintf(
                         'You have reached the maximum number of login attempts.'
                         . ' Please try again in %s minutes.', 1), 401);
+        $event->setResponse($response);
+    }
+    
+    /**
+     * Return a 401 bad request response for bad credentials
+     * @param \Symfony\Component\HttpKernel\Event\GetResponseEvent $event
+     */
+    private function wrongLogin($event) {
+         $event->stopPropagation();
+        $response = new JWTAuthenticationFailureResponse(sprintf(
+                        'Wrong credentials', 401));
         $event->setResponse($response);
     }
 
